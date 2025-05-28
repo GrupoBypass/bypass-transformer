@@ -1,0 +1,37 @@
+services:
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: db  
+      MYSQL_DATABASE: test_db
+      MYSQL_USER: sparkuser
+      MYSQL_PASSWORD: bypass1234
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD"]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy  
+    environment:
+      DB_HOST: db
+      DB_USER: sparkuser
+      DB_PASSWORD: bypass1234
+      DB_NAME: test_db
+
+volumes:
+  db_data:

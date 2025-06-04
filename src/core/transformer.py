@@ -38,7 +38,7 @@ class Transformer:
         for field in df.schema.fields:
             if isinstance(field.dataType, DoubleType):
                 print(f"Arredondando coluna DOUBLE: {field.name}")
-                df = df.withColumn(field.name, spark_round(col(field.name), 2))
+                df = df.withColumn(field.name, spark_round(col(field.name), 4))
 
         # 3. Converte datas (DateType, TimestampType ou strings que representem datas)
         for field in df.schema.fields:

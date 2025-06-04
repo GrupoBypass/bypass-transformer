@@ -1,5 +1,8 @@
-from s3_connector import S3Connector
+from core.s3_connector import S3Connector
 from pyspark.sql.functions import col
+import os
+
+os.environ['_JAVA_OPTIONS'] = '-Xmx1g'
 
 AWS_ACCESS_KEY_ID = 'ASIA6L3Q6UCNBRKIONNX'
 AWS_SECRET_ACCESS_KEY = 'md+NJXYx92b2UL6IFJtDF7+gsUrhOV0H0NAt3+x1'
@@ -22,11 +25,11 @@ con = S3Connector(
 spark = con.spark
 
 s3_input_path = f"s3a://{BUCKET_RAW}/data/{ARQUIVO_ENTRADA}.csv"
-df_raw = spark.read.option("header", "true").option("inferSchema", "true").csv(s3_input_path)
+df_raw = spark.read.option("header", "true").option("inferSchema", "true").csv(s3_input_path, sep=",")
 
 df_trusted = df_raw.filter(col("status").isNotNull()) \
                    .withColumnRenamed("sla", "sla_horas") \
                    .dropDuplicates()
 
 s3_output_path = f"s3a://{BUCKET_TRUSTED}/data/{ARQUIVO_SAIDA}"
-df_trusted.write.mode("overwrite").option("header", "true").csv(s3_output_path)
+df_trusted.write.mode("overwrite").option("header", "true").csv(s3_output_path, sep=";")

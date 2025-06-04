@@ -13,7 +13,11 @@ class S3Connector:
 
         self.spark = SparkSession.builder \
             .appName("S3App") \
+            .config("spark.jars", "E:\\SPTech\\bypass\\bypass-transformer\\hadoop-aws-3.3.2.jar,E:\\SPTech\\bypass\\bypass-transformer\\aws-java-sdk-bundle-1.11.1026.jar") \
             .getOrCreate()
+
+        # for item in self.spark.sparkContext._conf.getAll():
+        #     print(item)
 
         self.s3_client = boto3.client(
             's3',

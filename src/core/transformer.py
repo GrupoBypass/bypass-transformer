@@ -8,6 +8,7 @@ from pyspark.sql.types import *
 
 # Funções de DataFrame
 from pyspark.sql.functions import *
+from pyspark.sql.functions import round as spark_round
 
 # Tipos de dados individuais (caso precise testar)
 from pyspark.sql.types import *

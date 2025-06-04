@@ -6,35 +6,32 @@ from pyspark.sql.types import StructType, StructField, StringType, DoubleType, I
 import os
 import mysql.connector
 from mysql.connector import Error
-from transformer import tratar_dataframe
-
-## Configuration
-MYSQL_HOST = 'localhost'
-MYSQL_DB = 'bypass_registry'
-MYSQL_USER = 'bypass_user'
-MYSQL_PASS = 'bypass1234'
-TABLE_NAME = 'DADOS_TOF'
-
-mysql_properties = {
-    "driver": "com.mysql.cj.jdbc.Driver",
-    "url": f"jdbc:mysql://{MYSQL_HOST}/{MYSQL_DB}",
-    "user": MYSQL_USER,
-    "password": MYSQL_PASS,
-    "table": TABLE_NAME
-}
+from transformer import Transformer
 
 os.environ['_JAVA_OPTIONS'] = '-Xmx1g'
-# export _JAVA_OPTIONS="-Xmx2g"
-# source ~/.bashrc
+
+# Set environment variable programmatically
+os.environ["HADOOP_HOME"] = "C:\\hadoop"
+os.environ["PATH"] += os.pathsep + "C:\\hadoop\\bin"
+
+jdbc_jar_path = "E:\\SPTech\\bypass\\bypass-transformer\\mysql-connector-j-9.3.0.jar"
 
 spark = SparkSession.builder \
-    .appName("Bypass-tranformer") \
+    .appName("bypass-tranformer") \
+    .config("spark.jars", jdbc_jar_path) \
     .getOrCreate()
 
-path = "E:\\SPTech\\bypass\\bypass-tof\\data\\tof-sensor\\2025-06-02\\2025-06-02_2.csv"
+url = "jdbc:mysql://localhost:3306/bypass_registry"
+properties = {
+    "user": "bypass_user",
+    "password": "bypass1234",
+    "driver": "com.mysql.cj.jdbc.Driver"
+}
+
+path = "E:\\SPTech\\bypass\\bypass-tof\\data\\tof-sensor\\2025-06-03\\2025-06-03_2.csv"
 
 df = spark.read.option("header", True).option("inferSchema", True).csv(path)
-df = tratar_dataframe(df)
+df = Transformer.tratar_dataframe(df)
 
 df.printSchema()
 
@@ -118,34 +115,29 @@ def associate_trem_and_carro(df):
     """
     Associate ID_SENSOR with ID_CARRO to get NUM_TREM and NUM_CARRO
     """
-    data = {}
     
     try:
-        connection = mysql.connector.connect(
-            host=MYSQL_HOST,
-            database=MYSQL_DB,
-            user=MYSQL_USER,
-            password=MYSQL_PASS,
-            port=3306
-        )
-        
-        cursor = connection.cursor(dictionary=True)
-        
-        cursor.execute(f"SELECT NUM_TREM, NUM_CARRO FROM VW_COMPOSICAO_ATUAL WHERE ID_CARRO = (SELECT ID_CARRO FROM SENSOR WHERE ID_SENSOR = {df.first().asDict().get('sensor_id')});")
+        df_composicao = spark.read.jdbc(url=url, table="VW_COMPOSICAO_ATUAL", properties=properties)
+        df_composicao.show()
+        df_composicao.printSchema()
+        df_composicao.createOrReplaceTempView("VW_COMPOSICAO_ATUAL")
 
-        records = cursor.fetchall()
-        
-        data = records[0] if records else {}
-    except Error as e:
-        print(f"MySQL Error: {str(e)}")
-    finally:
-        if connection.is_connected():
-            cursor.close()
-            connection.close()
+        df_sensor = spark.read.jdbc(url=url, table="SENSOR", properties=properties)
+        df_sensor.show()
+        df_sensor.printSchema()
+        df_sensor.createOrReplaceTempView("SENSOR")
+
+        df_composicao = spark.sql(f"SELECT NUM_TREM, NUM_CARRO FROM VW_COMPOSICAO_ATUAL WHERE ID_CARRO = (SELECT ID_CARRO FROM SENSOR WHERE ID_SENSOR = {df.first().asDict().get('sensor_id')});")
+        df_composicao.show()
+        df_composicao.printSchema()
+
+    except Exception as e:
+        print("Erro ao conectar ou ler do MySQL:")
+        print(e)
 
     df = (df
-            .withColumn("NUM_TREM", lit(data.get("NUM_TREM", 1)))
-            .withColumn("NUM_CARRO", lit(data.get("NUM_CARRO", 1)))
+            .withColumn("NUM_TREM", lit(df_composicao.first().asDict().get("NUM_TREM", 1)))
+            .withColumn("NUM_CARRO", lit(df_composicao.first().asDict().get("NUM_CARRO", 1)))
             .drop("ID_SENSOR")
             .withColumnRenamed("y_block", "y")
             .withColumnRenamed("x_block", "x")
@@ -158,3 +150,5 @@ def associate_trem_and_carro(df):
 df_client = associate_trem_and_carro(df)
 
 df_client.show(10, truncate=False)
+
+spark.stop()

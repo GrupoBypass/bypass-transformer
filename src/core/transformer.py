@@ -7,8 +7,7 @@ from pyspark.sql import *
 from pyspark.sql.types import *
 
 # Funções de DataFrame
-from pyspark.sql.functions import *
-from pyspark.sql.functions import round as spark_round
+from pyspark.sql.functions import col, coalesce, to_timestamp, round as spark_round
 
 # Tipos de dados individuais (caso precise testar)
 from pyspark.sql.types import *
@@ -53,37 +52,29 @@ class Transformer:
 
             # Caso a coluna seja String, verificar se ela contém datas
             elif isinstance(tipo_coluna, StringType):
-                # Pega amostra de até 20 valores não nulos
-                amostra = (
-                    df.select(nome_coluna)
-                    .dropna()
-                    .limit(20)
-                    .rdd.map(lambda r: r[0])
-                    .collect()
-                )
-
-                def parece_data(valor: str) -> bool:
-                    """Verifica se a string bate com padrões comuns de data"""
-                    if not isinstance(valor, str):
-                        return False
-                    valor = valor.strip()
-                    padroes = [
-                        r"^\d{4}-\d{2}-\d{2}$",                               # YYYY-MM-DD
-                        r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(\.\d+)?$",     # YYYY-MM-DD HH:MM:SS[.fração]
-                        r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\d*$",          # YYYY-MM-DD HH:MM:SSssss...
-                        r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?$",     # ISO 8601
-                    ]
-                    return any(re.match(p, valor) for p in padroes)
-
-                total = len(amostra)
-                datas = sum(1 for valor in amostra if parece_data(valor))
-
-                # Converte para timestamp se ao menos 50% da amostra parecer data
-                if total > 0 and datas / total >= 0.5:
-                    print(f"Convertendo '{nome_coluna}' para TimestampType ({datas}/{total} amostras são datas)")
+               # Check if string column contains dates
+                date_patterns = [
+                    r"^\d{2}/\d{2}/\d{4} \d{2}:\d{2}:\d{2}$",         # dd/MM/yyyy HH:mm:ss
+                    r"^\d{4}-\d{2}-\d{2}$",                           # YYYY-MM-DD
+                    r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}",          # YYYY-MM-DD HH:MM:SS
+                    r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}",          # ISO 8601
+                    r"^\d{2}/\d{2}/\d{4}",                            # MM/DD/YYYY
+                    r"^\d{2}-\d{2}-\d{4}"                             # DD-MM-YYYY
+                ]
+                
+                sample = df.select(col(nome_coluna)).na.drop().limit(20).collect()
+                date_count = sum(1 for row in sample if any(re.match(p, str(row[0]).strip()) for p in date_patterns))
+                
+                if len(sample) > 0 and date_count/len(sample) >= 0.5:
+                    print(f"Converting '{nome_coluna}' to TimestampType ({date_count}/{len(sample)} samples look like dates)")
                     df = df.withColumn(
-                        nome_coluna,
-                        to_timestamp(col(nome_coluna), "yyyy-MM-dd HH:mm:ss")
+                        nome_coluna, 
+                        coalesce(
+                            to_timestamp(col(nome_coluna), "dd/MM/yyyy HH:mm:ss"),
+                            to_timestamp(col(nome_coluna), "yyyy-MM-dd HH:mm:ss"),
+                            to_timestamp(col(nome_coluna), "yyyy-MM-dd"),
+                            to_timestamp(col(nome_coluna))
+                        ),
                     )
                 else:
                     print(f"Ignorando coluna '{nome_coluna}': não parece conter datas")

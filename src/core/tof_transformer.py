@@ -1,11 +1,10 @@
 from datetime import datetime
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import floor, col, mean, lit, when, count, sum as spark_sum
-import numpy as np
 from pyspark.sql.types import StructType, StructField, StringType, DoubleType, IntegerType
 import os
-import mysql.connector
-from mysql.connector import Error
+# import mysql.connector
+# from mysql.connector import Error
 from transformer import Transformer
 
 os.environ['_JAVA_OPTIONS'] = '-Xmx1g'
@@ -14,7 +13,7 @@ os.environ['_JAVA_OPTIONS'] = '-Xmx1g'
 os.environ["HADOOP_HOME"] = "C:\\hadoop"
 os.environ["PATH"] += os.pathsep + "C:\\hadoop\\bin"
 
-jdbc_jar_path = "E:\\SPTech\\bypass\\bypass-transformer\\mysql-connector-j-9.3.0.jar"
+jdbc_jar_path = "C:\\Users\\vitor\\Documents\\bypass\\bypass-transformer\\mysql-connector-j-9.3.0.jar"
 
 spark = SparkSession.builder \
     .appName("bypass-tranformer") \
@@ -28,7 +27,7 @@ properties = {
     "driver": "com.mysql.cj.jdbc.Driver"
 }
 
-path = "E:\\SPTech\\bypass\\bypass-tof\\data\\tof-sensor\\2025-06-03\\2025-06-03_2.csv"
+path = "C:\\Users\\vitor\\Documents\\bypass\\bypass-tof\\data\\tof-sensor\\2025-06-04\\2025-06-04_2.csv"
 
 df = spark.read.option("header", True).option("inferSchema", True).csv(path)
 df = Transformer.tratar_dataframe(df)
@@ -73,41 +72,41 @@ occupancy_df = (df
 
 occupancy_df.show(10, truncate=False)
 
-def insert_into_registry(df):
-    try:
-        connection = mysql.connector.connect(
-            host=MYSQL_HOST,
-            database=MYSQL_DB,
-            user=MYSQL_USER,
-            password=MYSQL_PASS,
-            port=3306
-        )
+# def insert_into_registry(df):
+#     try:
+#         connection = mysql.connector.connect(
+#             host=MYSQL_HOST,
+#             database=MYSQL_DB,
+#             user=MYSQL_USER,
+#             password=MYSQL_PASS,
+#             port=3306
+#         )
         
-        cursor = connection.cursor()
+#         cursor = connection.cursor()
         
-        # Convert Spark DataFrame to Pandas (for small datasets)
-        pandas_df = df.toPandas()
+#         # Convert Spark DataFrame to Pandas (for small datasets)
+#         pandas_df = df.toPandas()
         
-        # Prepare insert query
-        query = f"""INSERT INTO {TABLE_NAME} 
-                   (ID_SENSOR, DATAHORA, OCUPACAO_MEDIA) 
-                   VALUES (%s, %s, %s)"""
+#         # Prepare insert query
+#         query = f"""INSERT INTO {TABLE_NAME} 
+#                    (ID_SENSOR, DATAHORA, OCUPACAO_MEDIA) 
+#                    VALUES (%s, %s, %s)"""
         
-        # Convert to list of tuples
-        data = [tuple(x) for x in pandas_df[['ID_SENSOR', 'DATAHORA', 'OCUPACAO_MEDIA']].values]
+#         # Convert to list of tuples
+#         data = [tuple(x) for x in pandas_df[['ID_SENSOR', 'DATAHORA', 'OCUPACAO_MEDIA']].values]
         
-        # Execute batch insert
-        cursor.executemany(query, data)
-        connection.commit()
+#         # Execute batch insert
+#         cursor.executemany(query, data)
+#         connection.commit()
         
-        print(f"Inserted {len(pandas_df)} records successfully")
+#         print(f"Inserted {len(pandas_df)} records successfully")
         
-    except Error as e:
-        print(f"MySQL Error: {str(e)}")
-    finally:
-        if connection.is_connected():
-            cursor.close()
-            connection.close()
+#     except Error as e:
+#         print(f"MySQL Error: {str(e)}")
+#     finally:
+#         if connection.is_connected():
+#             cursor.close()
+#             connection.close()
 
 # insert_into_registry(occupancy_df)
 

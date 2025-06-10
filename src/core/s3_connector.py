@@ -13,11 +13,31 @@ class S3Connector:
 
         self.spark = SparkSession.builder \
             .appName("S3App") \
-            .config("spark.jars", "E:\\SPTech\\bypass\\bypass-transformer\\hadoop-aws-3.3.2.jar,E:\\SPTech\\bypass\\bypass-transformer\\aws-java-sdk-bundle-1.11.1026.jar") \
+            .config("spark.jars.packages", 
+                    "org.apache.hadoop:hadoop-aws:3.3.1,"
+                    "com.amazonaws:aws-java-sdk-bundle:1.11.901") \
+            .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem") \
+            .config("spark.hadoop.fs.s3a.aws.credentials.provider", "org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider") \
+            .config("spark.hadoop.fs.s3a.access.key", aws_access_key_id) \
+            .config("spark.hadoop.fs.s3a.secret.key", aws_secret_access_key) \
+            .config("spark.hadoop.fs.s3a.connection.timeout", "60000") \
+            .config("spark.hadoop.fs.s3a.connection.establish.timeout", "5000") \
+            .config("spark.hadoop.fs.s3a.attempts.maximum", "3") \
+            .config("spark.hadoop.fs.s3a.metrics.mode", "none") \
             .getOrCreate()
+            # .config("spark.jars", "hadoop-aws-3.2.0.jar,aws-java-sdk-bundle-1.11.1026.jar") \
 
-        # for item in self.spark.sparkContext._conf.getAll():
-        #     print(item)
+        print("Configurações Spark:")
+        for k, v in self.spark.sparkContext.getConf().getAll():
+            if "timeout" in k.lower() or "s3a" in k.lower():
+                print(f"{k} = {v}")
+
+        # print("\nConfigurações Hadoop:")
+        # conf = self.spark._jsc.hadoopConfiguration()
+        # for item in conf.iterator():
+        #     k, v = item.key(), item.value()
+        #     if "timeout" in k.lower() or "s3a" in k.lower() or "60s" in v:
+        #         print(f"{k} = {v}")
 
         self.s3_client = boto3.client(
             's3',

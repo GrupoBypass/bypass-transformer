@@ -10,7 +10,7 @@ services:
       - "3306:3306"
     volumes:
       - db_data:/var/lib/mysql
-      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./database:/docker-entrypoint-initdb.d
     
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD"]
@@ -32,6 +32,7 @@ services:
       DB_USER: sparkuser
       DB_PASSWORD: bypass1234
       DB_NAME: test_db
+      HOME: /home/spark
 
 volumes:
   db_data:

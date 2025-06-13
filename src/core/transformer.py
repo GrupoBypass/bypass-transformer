@@ -13,7 +13,8 @@ from pyspark.sql.functions import col, coalesce, to_timestamp, round as spark_ro
 from pyspark.sql.types import *
 
 class Transformer:
-        
+    
+    @staticmethod
     def tratar_dataframe(df: DataFrame) -> DataFrame:
         """
         Trata um DataFrame PySpark padronizando valores:

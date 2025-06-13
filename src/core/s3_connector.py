@@ -11,33 +11,31 @@ class S3Connector:
                  aws_session_token: Optional[str] = None,
                  region_name: str = 'us-west-2'):
 
-        self.spark = SparkSession.builder \
+        builder = SparkSession.builder \
             .appName("S3App") \
-            .config("spark.jars.packages", 
-                    "org.apache.hadoop:hadoop-aws:3.3.1,"
-                    "com.amazonaws:aws-java-sdk-bundle:1.11.901") \
+            .config("spark.jars.packages",
+                    "org.apache.hadoop:hadoop-aws:3.4.0,"
+                    "com.amazonaws:aws-java-sdk-bundle:1.12.698") \
+            .config("spark.driver.memory", "1g") \
             .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem") \
-            .config("spark.hadoop.fs.s3a.aws.credentials.provider", "org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider") \
-            .config("spark.hadoop.fs.s3a.access.key", aws_access_key_id) \
-            .config("spark.hadoop.fs.s3a.secret.key", aws_secret_access_key) \
+            .config("spark.hadoop.fs.s3a.endpoint", f"s3.{region_name}.amazonaws.com") \
             .config("spark.hadoop.fs.s3a.connection.timeout", "60000") \
             .config("spark.hadoop.fs.s3a.connection.establish.timeout", "5000") \
             .config("spark.hadoop.fs.s3a.attempts.maximum", "3") \
             .config("spark.hadoop.fs.s3a.metrics.mode", "none") \
-            .getOrCreate()
-            # .config("spark.jars", "hadoop-aws-3.2.0.jar,aws-java-sdk-bundle-1.11.1026.jar") \
+            .config("spark.hadoop.fs.s3a.access.key", aws_access_key_id) \
+            .config("spark.hadoop.fs.s3a.secret.key", aws_secret_access_key)
 
-        print("Configurações Spark:")
-        for k, v in self.spark.sparkContext.getConf().getAll():
-            if "timeout" in k.lower() or "s3a" in k.lower():
-                print(f"{k} = {v}")
+        # Adiciona credenciais temporárias apenas se houver session token
+        if aws_session_token:
+            builder = builder.config("spark.hadoop.fs.s3a.aws.credentials.provider",
+                                    "org.apache.hadoop.fs.s3a.TemporaryAWSCredentialsProvider") \
+                             .config("spark.hadoop.fs.s3a.session.token", aws_session_token)
+        else:
+            builder = builder.config("spark.hadoop.fs.s3a.aws.credentials.provider",
+                                    "org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider")
 
-        # print("\nConfigurações Hadoop:")
-        # conf = self.spark._jsc.hadoopConfiguration()
-        # for item in conf.iterator():
-        #     k, v = item.key(), item.value()
-        #     if "timeout" in k.lower() or "s3a" in k.lower() or "60s" in v:
-        #         print(f"{k} = {v}")
+        self.spark = builder.getOrCreate()
 
         self.s3_client = boto3.client(
             's3',
@@ -53,13 +51,11 @@ class S3Connector:
             response = self.s3_client.get_object(Bucket=bucket_name, Key=file_key)
             body = response['Body']
             return pd.read_csv(body)
-
         except self.s3_client.exceptions.NoSuchKey:
             print(f"Arquivo '{file_name}' não encontrado no bucket.")
         except Exception as e:
             print(f"Erro ao acessar o S3: {e}")
-        
-        return pd.DataFrame()  
+        return pd.DataFrame()
 
     def write_file_to_s3(self,
                          df: Union[pd.DataFrame, SparkDataFrame],
@@ -84,3 +80,36 @@ class S3Connector:
 
         except Exception as e:
             print(f"Erro ao salvar o arquivo no S3: {e}")
+    
+    def rename_spark_csv_output(self, bucket_name: str, s3_dir: str, new_filename: str):
+        """
+        Renomeia o arquivo part-*.csv gerado pelo Spark para um nome definido pelo usuário.
+        Exemplo de uso:
+            con.rename_spark_csv_output('meu-bucket', 'data/tof_sensor_trusted', 'tof_sensor_trusted.csv')
+        """
+
+        # Lista arquivos no diretório de saída
+        response = self.s3_client.list_objects_v2(Bucket=bucket_name, Prefix=f"{s3_dir}/")
+        part_file = None
+        for obj in response.get('Contents', []):
+            key = obj['Key']
+            if key.endswith('.csv') and 'part-' in key:
+                part_file = key
+                break
+
+        if not part_file:
+            print("Arquivo part-*.csv não encontrado no diretório de saída.")
+            return
+
+        # Copia o arquivo para o novo nome
+        copy_source = {'Bucket': bucket_name, 'Key': part_file}
+        dest_key = f"{s3_dir}/{new_filename}"
+        self.s3_client.copy_object(Bucket=bucket_name, CopySource=copy_source, Key=dest_key)
+        print(f"Arquivo renomeado para {dest_key}")
+
+        # (Opcional) Remove arquivos antigos e _SUCCESS
+        for obj in response.get('Contents', []):
+            key = obj['Key']
+            if key.startswith(f"{s3_dir}/") and (key.endswith('.csv') or key.endswith('_SUCCESS')):
+                if key != dest_key:
+                    self.s3_client.delete_object(Bucket=bucket_name, Key=key)

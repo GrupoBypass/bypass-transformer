@@ -34,6 +34,8 @@ services:
       DB_PASSWORD: bypass1234
       DB_NAME: bypass_registry
       HOME: /home/spark
+    volumes:
+      - .:/app
 
 volumes:
   db_data:

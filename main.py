@@ -30,6 +30,7 @@ df_raw = con.get_file_from_s3(
 df_raw.show(10)
 
 transformer = Transformer(environment="docker")
+print(transformer.db_con.url)
 
 df_trusted = transformer.tratar_dataframe(df_raw)
 

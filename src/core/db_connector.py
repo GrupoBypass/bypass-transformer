@@ -5,6 +5,7 @@ class DbConnector:
     
     def __init__(self, url: str, properties: str):
         self.url = url
+        print(f"Conectando ao banco de dados: {url}")
         self.properties = properties
 
     def insert(self, df: DataFrame, table_name: str) -> None:

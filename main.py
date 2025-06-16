@@ -1,18 +1,17 @@
 from src.core.s3_connector import S3Connector
+from src.core.tof_transformer import TofTransformer
 from src.core.transformer import Transformer
 
-AWS_ACCESS_KEY_ID = 'ASIA2IC2FFOWPWKWFQHZ'
-AWS_SECRET_ACCESS_KEY = 'D11GYZu+/FPsO7q+fMQPbiSVJ0CvXJtg4y3NecI1'
-AWS_SESSION_TOKEN = 'IQoJb3JpZ2luX2VjECEaCXVzLXdlc3QtMiJHMEUCIGazfAs4thjQCqcPOcvVuB8Z4aW7qGo3WeYrk3UtKXZXAiEAztzHoeLTHmRxMAj2NYSwSEDt03Ctk/o2KugNBik6hKoqvwII+f//////////ARABGgw3MDQ1NjM3MTkwODQiDKDlbujp5Qg+DiHAoyqTAnqRGUiNynGaPwT8ZIS5ahTJeX0YHRbdhlelc3UbD4uVv719dbklAFr2L274spp+FaKm6ejM+ORrD/dk6raGYUSCAXn63ZIut8CGlG88tLlfa/Fyf8uM7Usa9x0iKxexij5ozvlzauNL2d75qk/sKOOdqvJwTO/YV99OjwLmyHKLbrM2WfecEJCTok1/kvGh1Pnaj4jvn98sHImx40pZR1EttlINWFwt2jBnbnx6bRLB+7Kx4ANdThpeXn/Yd1xuc/cijk1kUTH25OsnvJR9qbqgpw5eZk7KAhf77YEjb1wUHZ523GaV7vB02YGaMcliGX/y3e4SwMMnAFNEkYqJz9e6GOLhxs3M/gz8qkCRRFL2g1GuMIbdrcIGOp0BC8mwlw55R1FauyM/Z9bEoBbbdU+WhpVqcqkLZVwzOua2livEEehIfPksZ6qn3oFJDV6zE5/NJRDoXjr1HUctt1r/DUqUwOuEzWU/kYW3RksFZevx8lBB6FPDHzTjqJqZvL5/+I+0qM20kLL9JQ3+qrDmZec60tlsMMEaoQIRrNgqJaYfNatxfFsQLV7kcxzUfSTQcQ3QsOEhXja0KA=='
+AWS_ACCESS_KEY_ID = 'ASIA2IC2FFOWOIWGGT5F'
+AWS_SECRET_ACCESS_KEY = 'rlX3HV7IRWpxVyV1gdSUeOJlwTv04VjA/IF1OhbQ'
+AWS_SESSION_TOKEN = 'IQoJb3JpZ2luX2VjEHsaCXVzLXdlc3QtMiJIMEYCIQDjxSGGLWqN91pBb4LYgUt/fSELtgEpF9yB2oJ2URU3vwIhAKoPQHoiwoGtrRe86BSz023rgAVytSWNt2xf3Ulw06fvKrYCCGQQARoMNzA0NTYzNzE5MDg0IgyK60aWnRt4sBUdqacqkwIreNkO0QS7RsIf9pNnSBnYbguW1zuJ6wSnXBFaCiDBhmRZPrQPCPczM7zbT1xHVsgWeTC63MnsQ8Na27ButZMkpAAUhOThAResRluagC0hx/G9UjMVilW0n7KsvueGKhajac86kfYzSz/5VSRsRJoHw6rsrJXSLnTBrQs7J52Cr7BDdhFfx2WEPav9kM24cNylc9G1JvMBFNLyKvC2uu8aDzSTG87ObwzHnE1YGbF6XbaPPfCjuF2eNSVVZl4M7o2315K+ZAyzNvmapjwK0p9+n9MBmXrTVONrfhfJemiJwtvIVUY6Gnzg9C+0/NVcJI/0WiYwMRc0EbtL+K5yQTIcjrsgV4eQ4VPrJ1EgYgJu0hxKFTDY1cHCBjqcAcDp+kx3cBYDkKusQfheH+97LGWkQOd/Gwr9RwctN80/NH3qMxbh17IQ0ZivAyRsu/fpVPkKokLV3jqPF1+hhD7OBnGyDMMIfObC7WD20b692XFocZD8/yuTTKPZ1NlcivsLZZg8nmUIiD8ac/iekVjqinwexcQHnAesvfLOwQ3F6dYbfVXA1NBvEAuTFdI3wGyROxI7Z7LcRQmFyQ=='
 REGIAO = 'us-east-1'
 
 BUCKET_RAW = 'bypass-teste-raw'
 BUCKET_TRUSTED = 'bypass-teste-trusted'
+BUCKET_CLIENT = 'bypass-teste-client'
 
-ARQUIVO_ENTRADA = 'tof_sensor'
-ARQUIVO_SAIDA = 'tof_sensor_trusted'
-
-SENSOR = 'tof'
+ARQUIVO = 'tof_sensor'
 
 con = S3Connector(
     aws_access_key_id=AWS_ACCESS_KEY_ID,
@@ -23,17 +22,53 @@ con = S3Connector(
 
 spark = con.spark
 
-s3_input_path = f"s3a://{BUCKET_RAW}/data/{ARQUIVO_ENTRADA}.csv"
-df_raw = spark.read.option("header", "true").option("inferSchema", "true").csv(s3_input_path, sep=",")
+df_raw = con.get_file_from_s3(
+    file_name=ARQUIVO,
+    bucket_name=BUCKET_RAW
+)
 
 df_raw.show(10)
 
-df_trusted = Transformer.tratar_dataframe(df_raw)
+transformer = Transformer(environment="docker")
 
-s3_output_path = f"s3a://{BUCKET_TRUSTED}/data/{SENSOR}"
-df_trusted.coalesce(1).write.mode("overwrite").option("header", "true").csv(s3_output_path, sep=",")
-con.rename_spark_csv_output(
+df_trusted = transformer.tratar_dataframe(df_raw)
+
+con.write_file_to_s3(
+    df=df_trusted,
+    sensor=ARQUIVO,
     bucket_name=BUCKET_TRUSTED,
-    s3_dir=f"data/{SENSOR}",
-    new_filename=f"{ARQUIVO_SAIDA}.csv"
+    file_name=ARQUIVO
+)
+
+df_sensor = transformer.select_from_registry(spark=spark, table_name="SENSOR")
+df_sensor.createOrReplaceTempView("SENSOR")
+
+df_tipo_sensor = transformer.select_from_registry(
+    spark=spark,
+    query=f"SELECT TIPO_SENSOR FROM SENSOR WHERE ID_SENSOR = {df_raw.first().asDict().get('sensor_id')};",
+)
+
+sensor = df_tipo_sensor.first().asDict().get("TIPO_SENSOR")
+
+# Teste tof_tansformer
+transformer = TofTransformer(environment="docker")
+
+print("TIPO DO TRANSFORMER: ", type(transformer))
+
+df_registry = transformer.tratar_dataframe_registry(df_trusted)
+
+df_registry.show(10)
+
+transformer.insert_into_registry(
+    df=df_registry,
+    table_name="DADOS_TOF"
+)
+
+df_client = transformer.tratar_dataframe_client(df_trusted, spark)
+
+con.write_file_to_s3(
+    df=df_client,
+    sensor=sensor,
+    bucket_name=BUCKET_CLIENT,
+    file_name=ARQUIVO
 )

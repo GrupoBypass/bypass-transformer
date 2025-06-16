@@ -1,3 +1,5 @@
+from src.core.db_connector import DbConnector
+
 import re
 
 # Sessão Spark
@@ -12,10 +14,36 @@ from pyspark.sql.functions import col, coalesce, to_timestamp, round as spark_ro
 # Tipos de dados individuais (caso precise testar)
 from pyspark.sql.types import *
 
+import os
+
 class Transformer:
     
-    @staticmethod
-    def tratar_dataframe(df: DataFrame) -> DataFrame:
+    def __init__(self, 
+                 db_url = f"jdbc:mysql://{os.getenv('DB_HOST', 'db')}:3306/{os.getenv('DB_NAME', 'bypass_registry')}",
+                 db_prop = {
+                    "user": os.getenv('DB_USER', 'bypass_user'),
+                    "password": os.getenv('DB_PASSWORD', 'bypass1234'),
+                    "driver": "com.mysql.cj.jdbc.Driver",
+                    "defaultAuthenticationPlugin": "caching_sha2_password",
+                    "allowPublicKeyRetrieval": "true",
+                    "useSSL": "false"
+                 },
+                 environment: str = "local"
+                ):
+        self.environment = environment
+        self.db_con = DbConnector(db_url, db_prop)
+        self.set_environment()
+
+    def set_environment(self):
+        if self.environment == "local":
+            os.environ['_JAVA_OPTIONS'] = '-Xmx1g'
+            os.environ["SPARK_HOME"] = "C:\\spark"
+            os.environ["HADOOP_HOME"] = "C:\\hadoop"
+            os.environ["PATH"] += os.pathsep + "C:\\hadoop\\bin"
+            os.environ["PYSPARK_PYTHON"] = "python"
+            os.environ["PYSPARK_DRIVER_PYTHON"] = "python"
+    
+    def tratar_dataframe(self, df: DataFrame) -> DataFrame:
         """
         Trata um DataFrame PySpark padronizando valores:
         1. Remove registros com valores nulos
@@ -84,5 +112,49 @@ class Transformer:
         df.printSchema()
 
         return df
+    
+    def insert_into_registry(self, df: DataFrame, table_name: str) -> None:
+        """
+        Escreve um DataFrame PySpark em uma tabela MySQL.
+        
+        Parâmetros:
+            df (DataFrame): O DataFrame a ser escrito
+            table_name (str): Nome da tabela MySQL
+        """
+        self.db_con.insert(df=df, table_name=table_name)
 
+    def select_from_registry(self, spark: SparkSession, table_name: str = "", query: str = "") -> DataFrame:
+        """
+        Lê dados de uma tabela MySQL para um DataFrame PySpark.
+        
+        Parâmetros:
+            spark (SparkSession): Sessão Spark ativa
+            table_name (str): Nome da tabela MySQL
+            query (str): Consulta SQL opcional para filtrar os dados
+        
+        Retorna:
+            DataFrame: O DataFrame lido da tabela
+        """
+        if query:
+            return self.db_con.select_from_query(spark, query)
 
+        return self.db_con.select(spark, table_name)
+    
+    def tratar_dataframe_registry(self, df: DataFrame) -> DataFrame:
+        """
+        Método de classe para tratar um DataFrame PySpark padronizando valores.
+        
+        Retorna:
+            DataFrame: O DataFrame tratado
+        """
+        pass
+    
+    def tratar_dataframe_client(self, df: DataFrame) -> DataFrame:
+        """
+        Método de classe para tratar um DataFrame PySpark padronizando valores.
+        
+        Retorna:
+            DataFrame: O DataFrame tratado
+        """
+        pass
+    

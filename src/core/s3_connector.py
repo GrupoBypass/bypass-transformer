@@ -1,5 +1,4 @@
 import boto3
-import pandas as pd
 import io
 from typing import Optional, Union
 from pyspark.sql import SparkSession, DataFrame as SparkDataFrame
@@ -11,6 +10,8 @@ class S3Connector:
                  aws_session_token: Optional[str] = None,
                  region_name: str = 'us-west-2'):
 
+        jdbc_jar_path = "./jars/mysql-connector-j-9.3.0.jar"
+        
         builder = SparkSession.builder \
             .appName("S3App") \
             .config("spark.jars.packages",
@@ -24,7 +25,9 @@ class S3Connector:
             .config("spark.hadoop.fs.s3a.attempts.maximum", "3") \
             .config("spark.hadoop.fs.s3a.metrics.mode", "none") \
             .config("spark.hadoop.fs.s3a.access.key", aws_access_key_id) \
-            .config("spark.hadoop.fs.s3a.secret.key", aws_secret_access_key)
+            .config("spark.hadoop.fs.s3a.secret.key", aws_secret_access_key) \
+            .config("spark.jars", jdbc_jar_path) \
+            
 
         # Adiciona credenciais temporárias apenas se houver session token
         if aws_session_token:
@@ -45,39 +48,28 @@ class S3Connector:
             aws_session_token=aws_session_token
         )
 
-    def get_file_from_s3(self, file_name: str, bucket_name: str = 'bypass-trusted') -> pd.DataFrame:
+    def get_file_from_s3(self, file_name: str, bucket_name: str) -> SparkDataFrame:
         try:
-            file_key = f"data/{file_name}.csv"
-            response = self.s3_client.get_object(Bucket=bucket_name, Key=file_key)
-            body = response['Body']
-            return pd.read_csv(body)
+            s3_input_path = f"s3a://{bucket_name}/data/{file_name}.csv"
+            return self.spark.read.option("header", "true").option("inferSchema", "true").csv(s3_input_path, sep=",")
         except self.s3_client.exceptions.NoSuchKey:
             print(f"Arquivo '{file_name}' não encontrado no bucket.")
         except Exception as e:
             print(f"Erro ao acessar o S3: {e}")
-        return pd.DataFrame()
+        return SparkDataFrame
 
     def write_file_to_s3(self,
-                         df: Union[pd.DataFrame, SparkDataFrame],
-                         file_name: str,
-                         bucket_name: str = 'bypass-trusted') -> None:
+                         df: SparkDataFrame,
+                         sensor: str,
+                         bucket_name: str,
+                         file_name: str) -> None:
         try:
-            file_key = f"data/{file_name}.csv"
-
-            if isinstance(df, pd.DataFrame):
-                buffer = io.StringIO()
-                df.to_csv(buffer, index=False)
-                buffer.seek(0)
-                self.s3_client.put_object(Bucket=bucket_name, Key=file_key, Body=buffer.getvalue())
-
-            elif isinstance(df, SparkDataFrame):
-                s3_path = f"s3a://{bucket_name}/data/{file_name}"
-                df.write.mode('overwrite').csv(s3_path, header=True)
-            else:
-                print("Tipo de DataFrame não suportado.")
-
-            print(f"Arquivo '{file_name}.csv' salvo com sucesso no bucket '{bucket_name}'.")
-
+            s3_path = f"s3a://{bucket_name}/data/{sensor}"
+            df.coalesce(1).write.mode("overwrite").option("header", "true").csv(s3_path, sep=",")
+            df.write.mode('overwrite').csv(s3_path, header=True)
+            self.rename_spark_csv_output(bucket_name, f"data/{sensor}", f"{file_name}.csv")
+        except self.s3_client.exceptions.NoSuchBucket:
+            print(f"Bucket '{bucket_name}' não encontrado.")
         except Exception as e:
             print(f"Erro ao salvar o arquivo no S3: {e}")
     

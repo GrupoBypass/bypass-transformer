@@ -3,6 +3,7 @@ from src.core.tof_transformer import TofTransformer
 from src.core.dps_transformer import DpsTransformer
 from src.core.piezo_transformer import PiezoTransformer
 from src.core.omron_transformer import OmronTransformer
+from src.core.dht11_transformer import DHT11Transformer
 from src.core.transformer import Transformer
 
 AWS_ACCESS_KEY_ID = 'ASIA2IC2FFOWAXFUFAHL'
@@ -23,7 +24,8 @@ sensor_tabela = {
     "TOF": "DADOS_TOF",
     "DPS": "DADOS_DPS",
     "PIEZO": "DADOS_PIEZO",
-    "OMRON": "DADOS_OMRON"
+    "OMRON": "DADOS_OMRON",
+    "DHT11": "DADOS_DHT11",
 }
 
 con = S3Connector(
@@ -79,6 +81,10 @@ elif sensor == "PIEZO":
 elif sensor == "OMRON":
     transformer = OmronTransformer(spark=spark, environment="docker")
     tabela = sensor_tabela.get("OMRON")
+elif sensor == "UMIDADE/TEMPERATURA":
+    sensor = "DHT11"
+    transformer = DHT11Transformer(spark=spark, environment="docker")
+    tabela = sensor_tabela.get("DHT11")
 
 print("TIPO DO TRANSFORMER: ", type(transformer))
 

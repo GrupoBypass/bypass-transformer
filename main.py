@@ -6,9 +6,9 @@ from src.core.omron_transformer import OmronTransformer
 from src.core.dht11_transformer import DHT11Transformer
 from src.core.transformer import Transformer
 
-AWS_ACCESS_KEY_ID = 'ASIA2IC2FFOWAXFUFAHL'
-AWS_SECRET_ACCESS_KEY = 'bZ07ZddX+bE+zPqOSSDJGpZkilXkvBd8wpbRIT/H'
-AWS_SESSION_TOKEN = 'IQoJb3JpZ2luX2VjEID//////////wEaCXVzLXdlc3QtMiJIMEYCIQCdo3C/fGP3eMgbh4v5o/3nmiFep4p7Qv8u/cEvhIrCJAIhAOmryIFWHn3lCpEZGwNPqaHqZIGVCK0AZAyiQ+F32dD5KrYCCGkQARoMNzA0NTYzNzE5MDg0Igx+zRn/biqUWF9KThkqkwInC1Y753spCa+duEIBJvAPC2zCT6RuXvcZY+K4tKLrDVqM8C1sGGnAgFzYMdyv9j3Nnbruae5SyAw5aek4/yGCTfSACVNX+Pi3FjlEPQNMd7J6hC3E3PTiSEJOceFtknHnUrpoxMAC9j6LYhLzGuFAItE6TiV/GaTgGkF1VTT9KNWrxGyVtSHzWKZORH6DGp0l0rHx3whtyKze7FuP4X5TOEcVGzxtDIBUBWRfq1koELHNp5ALZWey1Fuk1EKqwMWVN0LwBguTaeewyK15C62Y4JwlKoWoSLinrGF5FiHfvM5LZOm2vk1CWsy3wGQaP/1FgWVoXznUpYlRTEEmMb7uo+rs77RqixqMFYWQU3pHR5dLFDD53MLCBjqcAZdAHiW0qRse+Xr4/qn50lY5yr+hmGYW6rByrqH9tqctcYUnJToFgFxmZEyui38seT/UAtQQ22hDKpyoXxwH0wwVfrrWDqkKMxeKhHdXUgJIPV78L3poz1EXox4TW2fjOFDC6ciul8eVBKPld4hEQtte23tTM6aeNmEmEVso+/Jc/k/P5xhVCGTNPHHKwu3k0YmQklL+tZkY3/Pn8g=='
+AWS_ACCESS_KEY_ID = 'ASIA2IC2FFOWFLT53EO4'
+AWS_SECRET_ACCESS_KEY = 'b3h0oyjNfIPZVIs2hQm4FAux36eSASm3x71nDwzf'
+AWS_SESSION_TOKEN = 'IQoJb3JpZ2luX2VjEJX//////////wEaCXVzLXdlc3QtMiJHMEUCIQCuBio/tb7tjJBFTy67FybNcyZBXgMQEEQyeu1y6uh5rwIgH1eGhiPkq0DWueJxO81GgVT6dNwfqRbg23YstlTnV7sqtgIIfhABGgw3MDQ1NjM3MTkwODQiDL5GlrsqIUr6jkG4+iqTAvYgBgvgeivkxlXRQWzwdRwZFLGlzuBa8aOsTuzUEcmasf04qJ7JVw08+kcns4Ygn2p/CKMSv+DxDyT8iQthjIldy0bwNJ+ZSYnak7vyfhSMVtoveivTSenR0ka5ELhdBsqjE+nq5VPWQ4x7AV3tcJWujh/WVZApK4PlLEiGE1QpAvRxgL+2vQCDzgENXNDlLTTEwfwmp7m1ECBBm6812URQqJ5IcHIjmvwHF6NTrokPt5y23/SXhpkkL7hkC24gd/FgLgA7LAhLbjsCG2cuMqxXbJfaVSJUJ+xyrKM2szfrVk7wWzidPklPZ65nwbkVZoalL0aXUM8HQvzUDFUQjtVC1ZN1z7no/39ymJDtCkTqIH8oMLOyx8IGOp0B+1sOh1Ev4kBXat4R8sC2dh6kR8eQx24lnbIVsfZLH2jm3VwBdJJFMtZwWu7GqfNO/K5cyupGAzrrxwApi0LTlWcO0hrIP/oUt/ISdctTZYXUIYdArQyzz3Hv9PVg+I6J8d7rJdeyQce89OLiL2tORetWdN6vJanIolB6YynBxTi9yIRszPY4CRotjL7OE98ruX6faHUI7hlaeUwQEg=='
 REGIAO = 'us-east-1'
 
 BUCKET_RAW = 'bypass-teste-raw'
@@ -17,8 +17,8 @@ BUCKET_CLIENT = 'bypass-teste-client'
 
 # ARQUIVO = 'tof_sensor'
 # ARQUIVO = 'dps_sensor'
-# ARQUIVO = 'piezo_sensor'
-ARQUIVO = 'omron_sensor'
+ARQUIVO = 'piezo_sensor'
+# ARQUIVO = 'omron_sensor'
 
 sensor_tabela = {
     "TOF": "DADOS_TOF",

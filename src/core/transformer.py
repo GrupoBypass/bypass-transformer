@@ -9,7 +9,7 @@ from pyspark.sql import *
 from pyspark.sql.types import *
 
 # Funções de DataFrame
-from pyspark.sql.functions import col, coalesce, to_timestamp, round as spark_round
+from pyspark.sql.functions import col, coalesce, to_timestamp, round as spark_round, from_utc_timestamp
 
 # Tipos de dados individuais (caso precise testar)
 from pyspark.sql.types import *
@@ -100,12 +100,16 @@ class Transformer:
                     print(f"Converting '{nome_coluna}' to TimestampType ({date_count}/{len(sample)} samples look like dates)")
                     df = df.withColumn(
                         nome_coluna, 
-                        coalesce(
-                            to_timestamp(col(nome_coluna), "dd/MM/yyyy HH:mm:ss"),
-                            to_timestamp(col(nome_coluna), "yyyy-MM-dd HH:mm:ss"),
-                            to_timestamp(col(nome_coluna), "yyyy-MM-dd"),
-                            to_timestamp(col(nome_coluna))
-                        ),
+                        from_utc_timestamp(
+                            coalesce(
+                                to_timestamp(col(nome_coluna), "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
+                                to_timestamp(col(nome_coluna), "dd/MM/yyyy HH:mm:ss"),
+                                to_timestamp(col(nome_coluna), "yyyy-MM-dd HH:mm:ss"),
+                                to_timestamp(col(nome_coluna), "yyyy-MM-dd"),
+                                to_timestamp(col(nome_coluna))
+                            ),
+                            "America/Sao_Paulo"
+                        )
                     )
                 else:
                     print(f"Ignorando coluna '{nome_coluna}': não parece conter datas")

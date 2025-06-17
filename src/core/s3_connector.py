@@ -66,7 +66,7 @@ class S3Connector:
         try:
             s3_path = f"s3a://{bucket_name}/data/{sensor}"
             df.coalesce(1).write.mode("overwrite").option("header", "true").csv(s3_path, sep=",")
-            df.write.mode('overwrite').csv(s3_path, header=True)
+            df.write.mode('overwrite').option("timestampFormat", "yyyy-MM-dd HH:mm:ss").csv(s3_path, header=True)
             self.rename_spark_csv_output(bucket_name, f"data/{sensor}", f"{file_name}.csv")
         except self.s3_client.exceptions.NoSuchBucket:
             print(f"Bucket '{bucket_name}' não encontrado.")

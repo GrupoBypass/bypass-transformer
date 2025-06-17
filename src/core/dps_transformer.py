@@ -5,8 +5,8 @@ from src.core.transformer import Transformer
 
 class DpsTransformer(Transformer):
 
-    def __init__(self, environment: str = "local"):
-        super().__init__(environment=environment)
+    def __init__(self, spark: SparkSession, environment: str = "local"):
+        super().__init__(spark=spark, environment=environment)
 
     def tratar_dataframe_registry(self, df: DataFrame) -> DataFrame:
         return (df

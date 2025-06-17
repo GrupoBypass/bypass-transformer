@@ -1,6 +1,7 @@
 from src.core.s3_connector import S3Connector
 from src.core.tof_transformer import TofTransformer
 from src.core.dps_transformer import DpsTransformer
+from src.core.piezo_transformer import PiezoTransformer
 from src.core.transformer import Transformer
 
 AWS_ACCESS_KEY_ID = 'ASIA2IC2FFOWAXFUFAHL'
@@ -13,11 +14,13 @@ BUCKET_TRUSTED = 'bypass-teste-trusted'
 BUCKET_CLIENT = 'bypass-teste-client'
 
 # ARQUIVO = 'tof_sensor'
-ARQUIVO = 'dps_sensor'
+# ARQUIVO = 'dps_sensor'
+ARQUIVO = 'piezo_sensor'
 
 sensor_tabela = {
     "TOF": "DADOS_TOF",
-    "DPS": "DADOS_DPS"
+    "DPS": "DADOS_DPS",
+    "PIEZO": "DADOS_PIEZO"
 }
 
 con = S3Connector(
@@ -37,7 +40,7 @@ df_raw = con.get_file_from_s3(
 print("-----------------DF_RAW-------------------")
 df_raw.show(10)
 
-transformer = Transformer(environment="docker")
+transformer = Transformer(spark=spark, environment="docker")
 print(transformer.db_con.url)
 
 df_trusted = transformer.tratar_dataframe(df_raw)
@@ -62,11 +65,14 @@ df_tipo_sensor = transformer.select_from_registry(
 sensor = str(df_tipo_sensor.first().asDict().get("TIPO_SENSOR")).strip()
 
 if sensor == "TOF":
-    transformer = TofTransformer(environment="docker")
+    transformer = TofTransformer(spark=spark, environment="docker")
     tabela = sensor_tabela.get("TOF")
 elif sensor == "DPS":
-    transformer = DpsTransformer(environment="docker")
+    transformer = DpsTransformer(spark=spark, environment="docker")
     tabela = sensor_tabela.get("DPS")
+elif sensor == "PIEZO":
+    transformer = PiezoTransformer(spark=spark, environment="docker")
+    tabela = sensor_tabela.get("PIEZO")
 
 print("TIPO DO TRANSFORMER: ", type(transformer))
 

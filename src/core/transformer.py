@@ -18,7 +18,8 @@ import os
 
 class Transformer:
     
-    def __init__(self, 
+    def __init__(self,
+                 spark: SparkSession,
                  db_url = f"jdbc:mysql://{os.getenv('DB_HOST', 'db')}:3306/{os.getenv('DB_NAME', 'bypass_registry')}",
                  db_prop = {
                     "user": os.getenv('DB_USER', 'bypass_user'),
@@ -30,6 +31,7 @@ class Transformer:
                  },
                  environment: str = "local"
                 ):
+        self.spark = spark
         self.environment = environment
         self.db_con = DbConnector(db_url, db_prop)
         self.set_environment()

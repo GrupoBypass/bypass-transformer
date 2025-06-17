@@ -1,83 +1,51 @@
-from datetime import datetime
+from pyspark.sql import DataFrame
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import floor, col, mean, lit, when, count, sum as spark_sum
-import os
-import mysql.connector
-from mysql.connector import Error
-from transformer import tratar_dataframe
+from pyspark.sql.types import IntegerType
+from src.core.transformer import Transformer
 
-## Configuration
-MYSQL_HOST = 'localhost'
-MYSQL_DB = 'bypass_registry'
-MYSQL_USER = 'bypass_user'
-MYSQL_PASS = 'bypass1234'
-TABLE_NAME = 'DADOS_TOF'
 
-mysql_properties = {
-    "driver": "com.mysql.cj.jdbc.Driver",
-    "url": f"jdbc:mysql://{MYSQL_HOST}/{MYSQL_DB}",
-    "user": MYSQL_USER,
-    "password": MYSQL_PASS,
-    "table": TABLE_NAME
-}
+class OmronTransformer(Transformer):
 
-os.environ['_JAVA_OPTIONS'] = '-Xmx1g'
-
-spark = SparkSession.builder \
-    .appName("Bypass-tranformer") \
-    .getOrCreate()
-
-path = "E:\\SPTech\\bypass\\bypass-tof\\data\\tof-sensor\\omron\\02-06-2025-01_29.json"
-
-df = spark.read.json(path)
-df = tratar_dataframe(df)
-
-df.printSchema()
-
-df.describe().show()
-
-df.show(10, truncate=False)
-
-# insert_into_registry(occupancy_df)
-
-def associate_from_registry(df):
-    """
-    Associate ID_SENSOR with ID_PLATAFORMA
-    """
-    data = {}
+    def __init__(self, spark: SparkSession, environment: str = "local"):
+        super().__init__(spark=spark, environment=environment)
     
-    try:
-        connection = mysql.connector.connect(
-            host=MYSQL_HOST,
-            database=MYSQL_DB,
-            user=MYSQL_USER,
-            password=MYSQL_PASS,
-            port=3306
-        )
-        
-        cursor = connection.cursor(dictionary=True)
-        
-        cursor.execute(f"SELECT ID_PLATAFORMA FROM PLATAFORMA WHERE ID_PLATAFORMA = (SELECT ID_PLATAFORMA FROM SENSOR WHERE ID_SENSOR = {df.first().asDict().get('sensor_id')});")
+    def tratar_dataframe_registry(self, df: DataFrame) -> DataFrame:
+        return df
 
-        records = cursor.fetchall()
+    def insert_into_registry(self, df: DataFrame, table_name: str) -> None:
+        """
+        Sem implementação no registry ainda...
         
-        data = records[0] if records else {}
-    except Error as e:
-        print(f"MySQL Error: {str(e)}")
-    finally:
-        if connection.is_connected():
-            cursor.close()
-            connection.close()
+        Parâmetros:
+            df (DataFrame): O DataFrame a ser escrito
+            table_name (str): Nome da tabela MySQL
+        """
+        print("Sensor Infravermelho omron sem implementação no registry...")
 
-    df = (df
-            .withColumn("NUM_TREM", lit(data.get("NUM_TREM", 1)))
-            .withColumn("NUM_CARRO", lit(data.get("NUM_CARRO", 1)))
-            .drop("ID_SENSOR")
-            .withColumnRenamed("y_block", "y")
-            .withColumnRenamed("x_block", "x")
-            .withColumnRenamed("timestamp", "DATAHORA")
-            .select("y", "x", "dist", "DATAHORA", "NUM_TREM", "NUM_CARRO")
-        )
+    def tratar_dataframe_client(self, df: DataFrame, spark: SparkSession) -> DataFrame:
+        return df
     
-    return df
+    def associar_plataforma(self, spark: SparkSession, df: DataFrame) -> DataFrame:
+        """
+        Associar ID_SENSOR com ID_CARRO para pegar NUM_TREM e NUM_CARRO
+        """
 
+        df_plataforma = self.select_from_registry(spark=spark, table_name="PLATAFORMA")
+        df_plataforma.createOrReplaceTempView("PLATAFORMA")
+
+        df_sensor = self.select_from_registry(spark=spark, table_name="SENSOR")
+        df_sensor.createOrReplaceTempView("SENSOR")
+
+        df_id_plataforma = self.select_from_registry(
+            spark=spark,
+            query=f"SELECT ID_PLATAFORMA FROM PLATAFORMA WHERE ID_PLATAFORMA = (SELECT ID_PLATAFORMA FROM SENSOR WHERE ID_SENSOR = {df.first().asDict().get('sensor_id')});",
+        )
+
+        df = (df
+              .withColumn("ID_PLATAFORMA", lit(df_id_plataforma.first().asDict().get("ID_PLATAFORMA", 1)))
+              .drop("ID_SENSOR")
+              .select("y", "x", "dist", "DATAHORA", "NUM_TREM", "NUM_CARRO")
+              )
+
+        return df

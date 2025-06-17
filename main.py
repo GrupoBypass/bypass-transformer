@@ -2,6 +2,7 @@ from src.core.s3_connector import S3Connector
 from src.core.tof_transformer import TofTransformer
 from src.core.dps_transformer import DpsTransformer
 from src.core.piezo_transformer import PiezoTransformer
+from src.core.omron_transformer import OmronTransformer
 from src.core.transformer import Transformer
 
 AWS_ACCESS_KEY_ID = 'ASIA2IC2FFOWAXFUFAHL'
@@ -15,12 +16,14 @@ BUCKET_CLIENT = 'bypass-teste-client'
 
 # ARQUIVO = 'tof_sensor'
 # ARQUIVO = 'dps_sensor'
-ARQUIVO = 'piezo_sensor'
+# ARQUIVO = 'piezo_sensor'
+ARQUIVO = 'omron_sensor'
 
 sensor_tabela = {
     "TOF": "DADOS_TOF",
     "DPS": "DADOS_DPS",
-    "PIEZO": "DADOS_PIEZO"
+    "PIEZO": "DADOS_PIEZO",
+    "OMRON": "DADOS_OMRON"
 }
 
 con = S3Connector(
@@ -73,6 +76,9 @@ elif sensor == "DPS":
 elif sensor == "PIEZO":
     transformer = PiezoTransformer(spark=spark, environment="docker")
     tabela = sensor_tabela.get("PIEZO")
+elif sensor == "OMRON":
+    transformer = OmronTransformer(spark=spark, environment="docker")
+    tabela = sensor_tabela.get("OMRON")
 
 print("TIPO DO TRANSFORMER: ", type(transformer))
 

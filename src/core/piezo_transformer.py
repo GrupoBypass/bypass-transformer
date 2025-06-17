@@ -24,7 +24,7 @@ os.environ['_JAVA_OPTIONS'] = '-Xmx2g'
 os.environ["HADOOP_HOME"] = "C:\\hadoop"
 os.environ["PATH"] += os.pathsep + "C:\\hadoop\\bin"
 
-jdbc_jar_path = "C:\\Users\\vitor\\Documents\\bypass\\bypass-transformer\\mysql-connector-j-9.3.0.jar"
+jdbc_jar_path = "..\\bypass-transformer\\mysql-connector-j-9.3.0.jar"
 
 spark = SparkSession.builder \
     .appName("bypass-tranformer") \

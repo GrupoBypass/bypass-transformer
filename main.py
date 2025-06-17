@@ -1,17 +1,24 @@
 from src.core.s3_connector import S3Connector
 from src.core.tof_transformer import TofTransformer
+from src.core.dps_transformer import DpsTransformer
 from src.core.transformer import Transformer
 
-AWS_ACCESS_KEY_ID = 'ASIA2IC2FFOWOIWGGT5F'
-AWS_SECRET_ACCESS_KEY = 'rlX3HV7IRWpxVyV1gdSUeOJlwTv04VjA/IF1OhbQ'
-AWS_SESSION_TOKEN = 'IQoJb3JpZ2luX2VjEHsaCXVzLXdlc3QtMiJIMEYCIQDjxSGGLWqN91pBb4LYgUt/fSELtgEpF9yB2oJ2URU3vwIhAKoPQHoiwoGtrRe86BSz023rgAVytSWNt2xf3Ulw06fvKrYCCGQQARoMNzA0NTYzNzE5MDg0IgyK60aWnRt4sBUdqacqkwIreNkO0QS7RsIf9pNnSBnYbguW1zuJ6wSnXBFaCiDBhmRZPrQPCPczM7zbT1xHVsgWeTC63MnsQ8Na27ButZMkpAAUhOThAResRluagC0hx/G9UjMVilW0n7KsvueGKhajac86kfYzSz/5VSRsRJoHw6rsrJXSLnTBrQs7J52Cr7BDdhFfx2WEPav9kM24cNylc9G1JvMBFNLyKvC2uu8aDzSTG87ObwzHnE1YGbF6XbaPPfCjuF2eNSVVZl4M7o2315K+ZAyzNvmapjwK0p9+n9MBmXrTVONrfhfJemiJwtvIVUY6Gnzg9C+0/NVcJI/0WiYwMRc0EbtL+K5yQTIcjrsgV4eQ4VPrJ1EgYgJu0hxKFTDY1cHCBjqcAcDp+kx3cBYDkKusQfheH+97LGWkQOd/Gwr9RwctN80/NH3qMxbh17IQ0ZivAyRsu/fpVPkKokLV3jqPF1+hhD7OBnGyDMMIfObC7WD20b692XFocZD8/yuTTKPZ1NlcivsLZZg8nmUIiD8ac/iekVjqinwexcQHnAesvfLOwQ3F6dYbfVXA1NBvEAuTFdI3wGyROxI7Z7LcRQmFyQ=='
+AWS_ACCESS_KEY_ID = 'ASIA2IC2FFOWAXFUFAHL'
+AWS_SECRET_ACCESS_KEY = 'bZ07ZddX+bE+zPqOSSDJGpZkilXkvBd8wpbRIT/H'
+AWS_SESSION_TOKEN = 'IQoJb3JpZ2luX2VjEID//////////wEaCXVzLXdlc3QtMiJIMEYCIQCdo3C/fGP3eMgbh4v5o/3nmiFep4p7Qv8u/cEvhIrCJAIhAOmryIFWHn3lCpEZGwNPqaHqZIGVCK0AZAyiQ+F32dD5KrYCCGkQARoMNzA0NTYzNzE5MDg0Igx+zRn/biqUWF9KThkqkwInC1Y753spCa+duEIBJvAPC2zCT6RuXvcZY+K4tKLrDVqM8C1sGGnAgFzYMdyv9j3Nnbruae5SyAw5aek4/yGCTfSACVNX+Pi3FjlEPQNMd7J6hC3E3PTiSEJOceFtknHnUrpoxMAC9j6LYhLzGuFAItE6TiV/GaTgGkF1VTT9KNWrxGyVtSHzWKZORH6DGp0l0rHx3whtyKze7FuP4X5TOEcVGzxtDIBUBWRfq1koELHNp5ALZWey1Fuk1EKqwMWVN0LwBguTaeewyK15C62Y4JwlKoWoSLinrGF5FiHfvM5LZOm2vk1CWsy3wGQaP/1FgWVoXznUpYlRTEEmMb7uo+rs77RqixqMFYWQU3pHR5dLFDD53MLCBjqcAZdAHiW0qRse+Xr4/qn50lY5yr+hmGYW6rByrqH9tqctcYUnJToFgFxmZEyui38seT/UAtQQ22hDKpyoXxwH0wwVfrrWDqkKMxeKhHdXUgJIPV78L3poz1EXox4TW2fjOFDC6ciul8eVBKPld4hEQtte23tTM6aeNmEmEVso+/Jc/k/P5xhVCGTNPHHKwu3k0YmQklL+tZkY3/Pn8g=='
 REGIAO = 'us-east-1'
 
 BUCKET_RAW = 'bypass-teste-raw'
 BUCKET_TRUSTED = 'bypass-teste-trusted'
 BUCKET_CLIENT = 'bypass-teste-client'
 
-ARQUIVO = 'tof_sensor'
+# ARQUIVO = 'tof_sensor'
+ARQUIVO = 'dps_sensor'
+
+sensor_tabela = {
+    "TOF": "DADOS_TOF",
+    "DPS": "DADOS_DPS"
+}
 
 con = S3Connector(
     aws_access_key_id=AWS_ACCESS_KEY_ID,
@@ -27,12 +34,15 @@ df_raw = con.get_file_from_s3(
     bucket_name=BUCKET_RAW
 )
 
+print("-----------------DF_RAW-------------------")
 df_raw.show(10)
 
 transformer = Transformer(environment="docker")
 print(transformer.db_con.url)
 
 df_trusted = transformer.tratar_dataframe(df_raw)
+print("-----------------DF_TRUSTED-------------------")
+df_trusted.show(10)
 
 con.write_file_to_s3(
     df=df_trusted,
@@ -49,23 +59,31 @@ df_tipo_sensor = transformer.select_from_registry(
     query=f"SELECT TIPO_SENSOR FROM SENSOR WHERE ID_SENSOR = {df_raw.first().asDict().get('sensor_id')};",
 )
 
-sensor = df_tipo_sensor.first().asDict().get("TIPO_SENSOR")
+sensor = str(df_tipo_sensor.first().asDict().get("TIPO_SENSOR")).strip()
 
-# Teste tof_tansformer
-transformer = TofTransformer(environment="docker")
+if sensor == "TOF":
+    transformer = TofTransformer(environment="docker")
+    tabela = sensor_tabela.get("TOF")
+elif sensor == "DPS":
+    transformer = DpsTransformer(environment="docker")
+    tabela = sensor_tabela.get("DPS")
 
 print("TIPO DO TRANSFORMER: ", type(transformer))
 
 df_registry = transformer.tratar_dataframe_registry(df_trusted)
 
+print("-----------------DF_REGISTRY-------------------")
 df_registry.show(10)
 
 transformer.insert_into_registry(
     df=df_registry,
-    table_name="DADOS_TOF"
+    table_name=tabela
 )
 
 df_client = transformer.tratar_dataframe_client(df_trusted, spark)
+
+print("-----------------DF_CLIENT-------------------")
+df_client.show(10)
 
 con.write_file_to_s3(
     df=df_client,

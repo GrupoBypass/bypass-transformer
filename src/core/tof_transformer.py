@@ -10,11 +10,6 @@ class TofTransformer(Transformer):
     def __init__(self, environment: str = "local"):
         super().__init__(environment=environment)
 
-# path = "C:\\Users\\vitor\\Documents\\bypass\\bypass-tof\\data\\tof-sensor\\2025-06-04\\2025-06-04_2.csv"
-
-# df = spark.read.option("header", True).option("inferSchema", True).csv(path)
-# df = Transformer.tratar_dataframe(df)
-
     def tratar_dataframe_registry(self, df: DataFrame) -> DataFrame:
         return (df
                 # Mark each measurement as occupied (1) or not (0)

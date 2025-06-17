@@ -167,6 +167,14 @@ INSERT INTO COMPOSICAO_TRENS (ID_TREM, ID_CARRO, DATA_HORA_INICIO, DATA_HORA_FIM
 -- (2, 23, NOW(), NULL),
 -- (2, 24, NOW(), NULL);
 
+INSERT INTO CIRCUITO (MODELO, CATEGORIA, PRIORIDADE, ID_CARRO) VALUES
+('Siemens S7-1500', 'Controle Principal', 1, 7),
+('Siemens ET200SP', 'IO Distribuído', 2, 7),
+('Siemens S7-1200', 'Sistema Auxiliar', 3, 7),
+('Siemens S7-1500', 'Controle Principal', 1, 8),
+('Siemens ET200SP', 'IO Distribuído', 2, 8),
+('Siemens S7-1200', 'Sistema Auxiliar', 3, 8);
+
 INSERT INTO SENSOR (ID_TREM, ID_CARRO, ID_CIRCUITO, ID_PLATAFORMA, TIPO_SENSOR, FABRICANTE, MODELO_SENSOR) VALUES
 -- Sensors for Line 7 Train 1
 (NULL, 1, NULL, NULL, 'TOF', 'Texas Instruments', 'OPT3101'),
@@ -175,17 +183,9 @@ INSERT INTO SENSOR (ID_TREM, ID_CARRO, ID_CIRCUITO, ID_PLATAFORMA, TIPO_SENSOR, 
 (NULL, NULL, NULL, NULL, 'OPTICO', 'Banner', 'QS18'),
 
 -- Sensors for Line 8 Train 1
-(NULL, NULL, NULL, NULL, 'DPS', 'Siemens', 'SITRANS P'),
+(NULL, NULL, 1, NULL, 'DPS', 'Siemens', 'SITRANS P'),
 (NULL, NULL, NULL, NULL, 'PIEZO', 'PCB Piezotronics', '102B'),
 
 -- Sensors for Line 9 Train 1
 (NULL, 1, NULL, NULL, 'TEMPERATURA/UMIDADE', 'Sensirion', 'SHT31'),
 (NULL, 2, NULL, NULL, 'TOF', 'STMicroelectronics', 'VL53L0X');
-
-INSERT INTO CIRCUITO (MODELO, CATEGORIA, PRIORIDADE, ID_CARRO) VALUES
-('Siemens S7-1500', 'Controle Principal', 1, 7),
-('Siemens ET200SP', 'IO Distribuído', 2, 7),
-('Siemens S7-1200', 'Sistema Auxiliar', 3, 7),
-('Siemens S7-1500', 'Controle Principal', 1, 8),
-('Siemens ET200SP', 'IO Distribuído', 2, 8),
-('Siemens S7-1200', 'Sistema Auxiliar', 3, 8);

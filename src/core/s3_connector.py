@@ -18,6 +18,10 @@ class S3Connector:
                     "org.apache.hadoop:hadoop-aws:3.4.0,"
                     "com.amazonaws:aws-java-sdk-bundle:1.12.698") \
             .config("spark.driver.memory", "1g") \
+            .config("spark.hadoop.fs.s3a.committer.name", "directory") \
+            .config("spark.hadoop.mapreduce.outputcommitter.factory.scheme.s3a", "org.apache.hadoop.fs.s3a.commit.S3ACommitterFactory") \
+            .config("spark.sql.session.timeZone", "America/Sao_Paulo") \
+            .config("spark.hadoop.fs.s3a.fast.upload", "true") \
             .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem") \
             .config("spark.hadoop.fs.s3a.endpoint", f"s3.{region_name}.amazonaws.com") \
             .config("spark.hadoop.fs.s3a.connection.timeout", "60000") \

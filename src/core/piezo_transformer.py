@@ -72,6 +72,8 @@ class PiezoTransformer(Transformer):
     def tratar_dataframe_client(self, df: DataFrame, spark: SparkSession) -> DataFrame:
 
         df_client = self.tratar_dataframe_registry(df)
+        
+        df_client = self.associar_trilho_linha(spark=spark, df=df_client)
 
         # Janela por sensor e ordenada por DATAHORA_INICIO
         window_sensor = Window.partitionBy("ID_SENSOR_ORIGEM").orderBy("DATAHORA_INICIO")
@@ -88,43 +90,38 @@ class PiezoTransformer(Transformer):
             unix_timestamp("DATAHORA_INICIO") - unix_timestamp("DATAHORA_FIM_ANTERIOR")
         )
 
-        # Calcula o atraso (diferença do esperado de 180s)
-        df_client = df_client.withColumn(
-            "ATRASO",
-            col("HEADWAY") - lit(180)
-        )
-
         # Exibe para conferência
         df_client = df_client.drop("DATAHORA_FIM_ANTERIOR", "ID_TREM_ATRASO")
         
         return df_client
 
-    def associar_trem_carro(self, spark: SparkSession, df: DataFrame) -> DataFrame:
+    def associar_trilho_linha(self, spark: SparkSession, df: DataFrame) -> DataFrame:
         """
-        Associar ID_SENSOR com ID_CARRO para pegar NUM_TREM e NUM_CARRO
+        Associar ID_SENSOR com ID_TRILHO para pegar LINHA e TRILHO
         """
 
-        df_composicao = self.select_from_registry(
-            spark=spark, table_name="VW_COMPOSICAO_ATUAL")
-        df_composicao.createOrReplaceTempView("VW_COMPOSICAO_ATUAL")
+        df_trilho = self.select_from_registry(
+            spark=spark, table_name="TRILHO")
+        df_trilho.createOrReplaceTempView("TRILHO")
 
         df_sensor = self.select_from_registry(spark=spark, table_name="SENSOR")
         df_sensor.createOrReplaceTempView("SENSOR")
+        
+        df_linha = self.select_from_registry(spark=spark, table_name="LINHA")
+        df_linha.createOrReplaceTempView("LINHA")
 
-        df_trem_carro = self.select_from_registry(
+        df_trilho_linha = self.select_from_registry(
             spark=spark,
-            query=f"SELECT NUM_TREM, NUM_CARRO FROM VW_COMPOSICAO_ATUAL WHERE ID_CARRO = (SELECT ID_CARRO FROM SENSOR WHERE ID_SENSOR = {df.first().asDict().get('sensor_id')});",
+            query=f"""SELECT T.NUM_IDENTIFICACAO AS TRILHO, CONCAT(L.NUMERO, " - ", L.COR_IDENTIFICACAO) AS LINHA
+                        FROM TRILHO T 
+                        JOIN LINHA L ON L.ID_LINHA = T.ID_LINHA
+                        WHERE T.ID_TRILHO = (SELECT ID_TRILHO FROM SENSOR WHERE ID_SENSOR = {df.first().asDict().get('ID_SENSOR_ORIGEM')});
+            """,
         )
 
         df = (df
-              .withColumn("NUM_TREM", lit(df_trem_carro.first().asDict().get("NUM_TREM", 1)))
-              .withColumn("NUM_CARRO", lit(df_trem_carro.first().asDict().get("NUM_CARRO", 1)))
-              .drop("ID_SENSOR")
-              .withColumnRenamed("dist_mm", "dist")
-              .withColumnRenamed("y_block", "y")
-              .withColumnRenamed("x_block", "x")
-              .withColumnRenamed("dataHora", "DATAHORA")
-              .select("y", "x", "dist", "DATAHORA", "NUM_TREM", "NUM_CARRO")
+              .withColumn("TRILHO", lit(df_trilho_linha.first().asDict().get("TRILHO", 1)))
+              .withColumn("LINHA", lit(df_trilho_linha.first().asDict().get("LINHA", 1)))
               )
 
         return df

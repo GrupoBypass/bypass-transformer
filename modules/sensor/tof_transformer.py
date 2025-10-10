@@ -2,16 +2,20 @@ from pyspark.sql import DataFrame
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import floor, col, mean, lit, when, count, sum as spark_sum
 from pyspark.sql.types import IntegerType
-from transformer import Transformer
+from modules.cleaning.transformer import Transformer
 import os
 import boto3
 from decimal import Decimal
 
 class TofTransformer(Transformer):
 
+    AWS_ACESS_KEY_ID = os.environ.get("$AWS_ACCESS_KEY_ID")
+    AWS_SECRET_ACESS_KEY = os.environ.get("$AWS_SECRET_ACCESS_KEY")
+    AWS_SESSION_TOKEN = os.environ.get("$AWS_SESSION_TOKEN")
+    
     def main(self, local_input, s3, key):
         local_output_dir = "/tmp/output"
-        local_output_file = "/tmp/resultado.csv"   # nome fixo
+        local_output_file = "/tmp/tof_trusted.csv"   # nome fixo
         bucket_trusted = "bucket-bypass-trusted-teste"
         
         print("Iniciando Spark...")
@@ -42,6 +46,14 @@ class TofTransformer(Transformer):
         
     
     def tratar_dataframe_registry(self, df: DataFrame):
+
+        dynamodb = boto3.resource(
+            "dynamodb",
+            region_name="us-east-1",
+            aws_access_key_id="YOUR_ACCESS_KEY",
+            aws_secret_access_key="YOUR_SECRET_KEY",
+            aws_session_token="YOUR_SESSION_TOKEN"  # optional, only if using temporary credentials (e.g., STS)
+        )
         dynamodb = boto3.resource("dynamodb", region_name="us-east-1")
         metadata_table = dynamodb.Table("SensorMetadata")
         tof_table = dynamodb.Table("TofData")

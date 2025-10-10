@@ -12,3 +12,4 @@ pip3 install pyspark boto3 flask gunicorn requests pandas
 # Criar diretórios padrão
 mkdir -p /home/ubuntu/app /home/ubuntu/uploads /home/ubuntu/output
 chown -R ubuntu:ubuntu /home/ubuntu/app /home/ubuntu/uploads /home/ubuntu/output
+

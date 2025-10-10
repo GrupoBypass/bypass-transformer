@@ -6,8 +6,36 @@ import subprocess
 import json
 import os
 import sys
+import boto3
+from modules.sensor.tof_transformer import TofTransformer
+from modules.sensor.dht11_transformer import DHT11Transformer
+from modules.sensor.omron_transformer import OmronTransformer
+from modules.sensor.dps_transformer import DpsTransformer
+from modules.sensor.piezo_transformer import PiezoTransformer
+from modules.sensor.optical_transformer import OpticalTransformer
 
 app = Flask(__name__)
+
+BUCKET_RAW = "bucket-bypass-raw-teste"
+LOCAL_INPUT_TOF = "/tmp/input_tof.csv"
+LOCAL_INPUT_DPS = "/tmp/input_dps.csv"
+LOCAL_INPUT_DHT11 = "/tmp/input_dht11.csv"
+LOCAL_INPUT_OMRON = "/tmp/input_omron.csv"
+LOCAL_INPUT_PIEZO = "/tmp/input_piezo.csv"
+LOCAL_INPUT_OPTICAL = "/tmp/input_optical.csv"
+
+AWS_ACESS_KEY_ID = os.environ.get("$AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACESS_KEY = os.environ.get("$AWS_SECRET_ACCESS_KEY")
+AWS_SESSION_TOKEN = os.environ.get("$AWS_SESSION_TOKEN")
+
+session = boto3.Session(
+            aws_access_key_id=AWS_ACESS_KEY_ID,
+            aws_secret_access_key=AWS_SECRET_ACESS_KEY,
+            aws_session_token=AWS_SESSION_TOKEN,
+            region_name="us-east-1"
+        )
+        
+s3 = session.client("s3")
 
 @app.route("/process-test", methods=["POST"])
 def process_test():
@@ -15,41 +43,175 @@ def process_test():
     print("Teste recebido:", data)
     return jsonify({"status": "ok", "payload": data})
 
-@app.route("/process", methods=["POST"])
-def process_file():
+# @app.route("/process", methods=["POST"])
+# def process_file():
+#     try:
+#         data = request.json or {}
+#         key = data.get("key")
+        
+#         # Chama process_job.py no venv
+#         result = subprocess.run(
+#             [sys.executable, "process_job.py", key],
+#             capture_output=True,
+#             text=True,
+#             check=True
+#         )
+        
+#         print("process_job.py stdout:\n", result.stdout)
+#         print("process_job.py stderr:\n", result.stderr)
+
+#         return jsonify({
+#             "status": "ok",
+#             "stdout": result.stdout,
+#             "stderr": result.stderr
+#         })
+
+#     except subprocess.CalledProcessError as e:
+#         print("Erro ao executar process_job.py")
+#         print("stdout:", e.stdout)
+#         print("stderr:", e.stderr)
+#         return jsonify({
+#             "status": "error",
+#             "stdout": e.stdout,
+#             "stderr": e.stderr
+#         }), 500
+#     except Exception as e:
+#         print("Erro inesperado:", str(e))
+#         return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route("/process-tof", methods=["POST"])
+def process_tof():
     try:
         data = request.json or {}
         key = data.get("key")
         
-        # Chama process_job.py no venv
-        result = subprocess.run(
-            [sys.executable, "process_job.py", key],
-            capture_output=True,
-            text=True,
-            check=True
-        )
+        print("Iniciando download do S3...")
+        s3.download_file(BUCKET_RAW, key, LOCAL_INPUT_TOF)
+        print(f"Arquivo baixado localmente: {LOCAL_INPUT_TOF}")
         
-        print("process_job.py stdout:\n", result.stdout)
-        print("process_job.py stderr:\n", result.stderr)
+        if not key or "tof" not in key:
+            return jsonify({"status": "error", "message": "Arquivo inválido"}), 400
 
-        return jsonify({
-            "status": "ok",
-            "stdout": result.stdout,
-            "stderr": result.stderr
-        })
+        transformer = TofTransformer()
+        transformer.main(LOCAL_INPUT_TOF, s3, key)
+        
+        return jsonify({"status": "ok", "message": "Processamento concluído"}), 200
+    except Exception as e:
+        print("Erro inesperado:", str(e))
+        return jsonify({"status": "error", "message": str(e)}), 500
+    
+@app.route("/process-dps", methods=["POST"])
+def process_tof():
+    try:
+        data = request.json or {}
+        key = data.get("key")
+        
+        print("Iniciando download do S3...")
+        s3.download_file(BUCKET_RAW, key, LOCAL_INPUT_DPS)
+        print(f"Arquivo baixado localmente: {LOCAL_INPUT_DPS}")
+        
+        if not key or "tof" not in key:
+            return jsonify({"status": "error", "message": "Arquivo inválido"}), 400
 
-    except subprocess.CalledProcessError as e:
-        print("Erro ao executar process_job.py")
-        print("stdout:", e.stdout)
-        print("stderr:", e.stderr)
-        return jsonify({
-            "status": "error",
-            "stdout": e.stdout,
-            "stderr": e.stderr
-        }), 500
+        transformer = DpsTransformer()
+        transformer.main(LOCAL_INPUT_DPS, s3, key)
+        
+        return jsonify({"status": "ok", "message": "Processamento concluído"}), 200
+    except Exception as e:
+        print("Erro inesperado:", str(e))
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route("/process-dht11", methods=["POST"])
+def process_tof():
+    try:
+        data = request.json or {}
+        key = data.get("key")
+        
+        print("Iniciando download do S3...")
+        s3.download_file(BUCKET_RAW, key, LOCAL_INPUT_DHT11)
+        print(f"Arquivo baixado localmente: {LOCAL_INPUT_DHT11}")
+        
+        if not key or "tof" not in key:
+            return jsonify({"status": "error", "message": "Arquivo inválido"}), 400
+
+        transformer = DHT11Transformer()
+        transformer.main(LOCAL_INPUT_DHT11, s3, key)
+        
+        return jsonify({"status": "ok", "message": "Processamento concluído"}), 200
+    except Exception as e:
+        print("Erro inesperado:", str(e))
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route("/process-piezo", methods=["POST"])
+def process_tof():
+    try:
+        data = request.json or {}
+        key = data.get("key")
+        
+        print("Iniciando download do S3...")
+        s3.download_file(BUCKET_RAW, key, LOCAL_INPUT_PIEZO)
+        print(f"Arquivo baixado localmente: {LOCAL_INPUT_PIEZO}")
+        
+        if not key or "tof" not in key:
+            return jsonify({"status": "error", "message": "Arquivo inválido"}), 400
+
+        transformer = PiezoTransformer()
+        transformer.main(LOCAL_INPUT_PIEZO, s3, key)
+        
+        return jsonify({"status": "ok", "message": "Processamento concluído"}), 200
+    except Exception as e:
+        print("Erro inesperado:", str(e))
+        return jsonify({"status": "error", "message": str(e)}), 500
+    
+@app.route("/process-omron", methods=["POST"])
+def process_tof():
+    try:
+        data = request.json or {}
+        key = data.get("key")
+        
+        print("Iniciando download do S3...")
+        s3.download_file(BUCKET_RAW, key, LOCAL_INPUT_OMRON)
+        print(f"Arquivo baixado localmente: {LOCAL_INPUT_OMRON}")
+        
+        if not key or "tof" not in key:
+            return jsonify({"status": "error", "message": "Arquivo inválido"}), 400
+
+        transformer = OmronTransformer()
+        transformer.main(LOCAL_INPUT_OMRON, s3, key)
+        
+        return jsonify({"status": "ok", "message": "Processamento concluído"}), 200
+    except Exception as e:
+        print("Erro inesperado:", str(e))
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route("/process-optical", methods=["POST"])
+def process_tof():
+    try:
+        data = request.json or {}
+        key = data.get("key")
+        
+        print("Iniciando download do S3...")
+        s3.download_file(BUCKET_RAW, key, LOCAL_INPUT_OPTICAL)
+        print(f"Arquivo baixado localmente: {LOCAL_INPUT_OPTICAL}")
+        
+        if not key or "tof" not in key:
+            return jsonify({"status": "error", "message": "Arquivo inválido"}), 400
+
+        transformer = OpticalTransformer()
+        transformer.main(LOCAL_INPUT_OPTICAL, s3, key)
+        
+        return jsonify({"status": "ok", "message": "Processamento concluído"}), 200
     except Exception as e:
         print("Erro inesperado:", str(e))
         return jsonify({"status": "error", "message": str(e)}), 500
 
 if __name__ == "__main__":
+    session = boto3.Session(
+            aws_access_key_id=AWS_ACESS_KEY_ID,
+            aws_secret_access_key=AWS_SECRET_ACESS_KEY,
+            region_name="us-east-1"
+        )
+        
+    s3 = session.client("s3")
+    
     app.run(host="0.0.0.0", port=5000)

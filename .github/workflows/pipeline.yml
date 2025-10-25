@@ -48,7 +48,7 @@ jobs:
 
       - name: Criar .env
         run: |
-          cd ../ansible
+          cd ansible
           echo "S3_RAW=$RAW" > .env
           echo "S3_TRUSTED=$TRUSTED" >> .env
           echo "S3_CLIENT=$CLIENT" >> .env

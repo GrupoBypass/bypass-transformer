@@ -33,7 +33,7 @@
 
     - name: Copiar Dockerfile e código da aplicação
       copy:
-        src: app/
+        src: "{{ playbook_dir }}/../app/"
         dest: /opt/app/
         owner: root
         group: root

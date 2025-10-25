@@ -1,17 +1,31 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from flask import Flask, request, jsonify
 import subprocess
 import json
 import os
 import sys
 import boto3
+import logging
+
+from flask import Flask, request, jsonify
 from modules.sensor.tof_transformer import TofTransformer
 from modules.sensor.dht11_transformer import DHT11Transformer
 from modules.sensor.omron_transformer import OmronTransformer
 from modules.sensor.dps_transformer import DpsTransformer
 from modules.sensor.piezo_transformer import PiezoTransformer
+
+sys.stdout.reconfigure(line_buffering=True)
+sys.stderr.reconfigure(line_buffering=True)
+
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,                     # Log everything (INFO and above)
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[logging.StreamHandler(sys.stdout)]  # Output to stdout (Docker reads this)
+)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
@@ -23,13 +37,13 @@ LOCAL_INPUT_OMRON = "/tmp/input_omron.csv"
 LOCAL_INPUT_PIEZO = "/tmp/input_piezo.csv"
 LOCAL_INPUT_OPTICAL = "/tmp/input_optical.csv"
 
-AWS_ACESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
-AWS_SECRET_ACESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
+AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
 AWS_SESSION_TOKEN = os.environ.get("AWS_SESSION_TOKEN")
 
 session = boto3.Session(
-            aws_access_key_id=AWS_ACESS_KEY_ID,
-            aws_secret_access_key=AWS_SECRET_ACESS_KEY,
+            aws_access_key_id=AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
             aws_session_token=AWS_SESSION_TOKEN,
             region_name="us-east-1"
         )
@@ -108,6 +122,7 @@ def process_dht():
 @app.route("/process-piezo", methods=["POST"])
 def process_piezo():
     try:
+        logger.info(f"Access Key Id: {AWS_ACCESS_KEY_ID}")
         data = request.json or {}
         key = data.get("key")
         
@@ -148,9 +163,11 @@ def process_omron():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 if __name__ == "__main__":
+    logger.info(f"Access Key Id: {AWS_ACCESS_KEY_ID}")
+
     session = boto3.Session(
-            aws_access_key_id=AWS_ACESS_KEY_ID,
-            aws_secret_access_key=AWS_SECRET_ACESS_KEY,
+            aws_access_key_id=AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
             region_name="us-east-1"
         )
         

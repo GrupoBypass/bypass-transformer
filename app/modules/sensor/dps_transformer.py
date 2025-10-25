@@ -8,6 +8,18 @@ import boto3
 from decimal import Decimal
 
 class DpsTransformer(Transformer):
+    
+    AWS_ACESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
+    AWS_SECRET_ACESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
+    AWS_SESSION_TOKEN = os.environ.get("AWS_SESSION_TOKEN")
+    
+    dynamodb = boto3.resource(
+            "dynamodb",
+            region_name="us-east-1",
+            aws_access_key_id=AWS_ACESS_KEY_ID,
+            aws_secret_access_key=AWS_SECRET_ACESS_KEY,
+            aws_session_token=AWS_SESSION_TOKEN
+    )
 
     def main(self, local_input, s3, key):
         local_output_dir = "/tmp/output"
@@ -42,9 +54,8 @@ class DpsTransformer(Transformer):
         
     
     def tratar_dataframe_registry(self, df: DataFrame):
-        dynamodb = boto3.resource("dynamodb", region_name="us-east-1")
-        metadata_table = dynamodb.Table("SensorMetadata")
-        dps_table = dynamodb.Table("DpsData")
+        metadata_table = self.dynamodb.Table("SensorMetadata")
+        dps_table = self.dynamodb.Table("DpsData")
         
         for row in df.collect():
             sensor_value = row.get("sensor_id")

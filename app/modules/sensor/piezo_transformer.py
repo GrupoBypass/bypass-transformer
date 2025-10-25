@@ -15,6 +15,18 @@ from decimal import Decimal
 
 class PiezoTransformer(Transformer):
     
+    AWS_ACESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
+    AWS_SECRET_ACESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
+    AWS_SESSION_TOKEN = os.environ.get("AWS_SESSION_TOKEN")
+    
+    dynamodb = boto3.resource(
+            "dynamodb",
+            region_name="us-east-1",
+            aws_access_key_id=AWS_ACESS_KEY_ID,
+            aws_secret_access_key=AWS_SECRET_ACESS_KEY,
+            aws_session_token=AWS_SESSION_TOKEN
+    )
+    
     def main(self, local_input, s3, key):
         local_output_dir = "/tmp/output"
         local_output_file = "/tmp/resultado.csv"   # nome fixo
@@ -60,9 +72,9 @@ class PiezoTransformer(Transformer):
         """
         Handler para o DataFrame de registro, aplicando transformações específicas.
         """
-        dynamodb = boto3.resource("dynamodb", region_name="us-east-1")
-        piezo_table = dynamodb.Table("PiezoData")
-        piezo_sensor_distancia = dynamodb.Table("PiezoSensorDistancia")
+        
+        piezo_table = self.dynamodb.Table("PiezoData")
+        piezo_sensor_distancia = self.dynamodb.Table("PiezoSensorDistancia")
 
         # 1. Definir janela para particionar por trem_id e ordenar por timestamp
         window_spec = Window.partitionBy("trem_id").orderBy("dataHora")

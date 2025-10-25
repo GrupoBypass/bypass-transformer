@@ -7,6 +7,18 @@ import boto3
 from decimal import Decimal
 
 class DHT11Transformer(Transformer):
+    
+    AWS_ACESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
+    AWS_SECRET_ACESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
+    AWS_SESSION_TOKEN = os.environ.get("AWS_SESSION_TOKEN")
+    
+    dynamodb = boto3.resource(
+            "dynamodb",
+            region_name="us-east-1",
+            aws_access_key_id=AWS_ACESS_KEY_ID,
+            aws_secret_access_key=AWS_SECRET_ACESS_KEY,
+            aws_session_token=AWS_SESSION_TOKEN
+    )
 
     def main(self, local_input, s3, key):
         local_output_dir = "/tmp/output"
@@ -40,9 +52,8 @@ class DHT11Transformer(Transformer):
         
         
     def tratar_dataframe_registry(self, df: DataFrame) -> DataFrame:
-        dynamodb = boto3.resource("dynamodb", region_name="us-east-1")
-        metadata_table = dynamodb.Table("SensorMetadata")
-        dht11_table = dynamodb.Table("DHT11Data")
+        metadata_table = self.dynamodb.Table("SensorMetadata")
+        dht11_table = self.dynamodb.Table("DHT11Data")
         
         for row in df.collect():
             sensor_value = row.get("sensor_id")
@@ -74,8 +85,7 @@ class DHT11Transformer(Transformer):
             print(f"✅ Inserido DHT11Data: {sensor_id} → {trem_id}/{carro_id} com temperatura {temperatura:.2f}ºC e umidade {umidade:.2f}%")
 
     def tratar_dataframe_client(self, df: DataFrame, s3, key):
-        dynamodb = boto3.resource("dynamodb", region_name="us-east-1")
-        metadata_table = dynamodb.Table("SensorMetadata")
+        metadata_table = self.dynamodb.Table("SensorMetadata")
         local_output_dir = "/tmp/output"
         local_output_file = "/tmp/resultado.csv"   # nome fixo
         bucket_client = os.environ.get("S3_CLIENT")

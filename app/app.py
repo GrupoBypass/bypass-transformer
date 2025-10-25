@@ -91,7 +91,7 @@ def process_dps():
         s3.download_file(BUCKET_RAW, key, LOCAL_INPUT_DPS)
         print(f"Arquivo baixado localmente: {LOCAL_INPUT_DPS}")
         
-        if not key or "tof" not in key:
+        if not key or "dps" not in key:
             return jsonify({"status": "error", "message": "Arquivo inválido"}), 400
 
         transformer = DpsTransformer()
@@ -112,7 +112,7 @@ def process_dht():
         s3.download_file(BUCKET_RAW, key, LOCAL_INPUT_DHT11)
         print(f"Arquivo baixado localmente: {LOCAL_INPUT_DHT11}")
         
-        if not key or "tof" not in key:
+        if not key or "dht" not in key:
             return jsonify({"status": "error", "message": "Arquivo inválido"}), 400
 
         transformer = DHT11Transformer()
@@ -134,7 +134,7 @@ def process_piezo():
         s3.download_file(BUCKET_RAW, key, LOCAL_INPUT_PIEZO)
         logger.info(f"Arquivo baixado localmente: {LOCAL_INPUT_PIEZO}")
         
-        if not key or "tof" not in key:
+        if not key or "piezo" not in key:
             return jsonify({"status": "error", "message": "Arquivo inválido"}), 400
 
         transformer = PiezoTransformer()
@@ -155,7 +155,7 @@ def process_omron():
         s3.download_file(BUCKET_RAW, key, LOCAL_INPUT_OMRON)
         print(f"Arquivo baixado localmente: {LOCAL_INPUT_OMRON}")
         
-        if not key or "tof" not in key:
+        if not key or "omron" not in key:
             return jsonify({"status": "error", "message": "Arquivo inválido"}), 400
 
         transformer = OmronTransformer()

@@ -61,11 +61,32 @@ jobs:
           echo "${{ secrets.EC2_SSH_KEY }}" > ansible/bypass-key.pem
           chmod 400 ansible/bypass-key.pem
 
+      - name: Obter nomes das tabelas DynamoDB do Terraform
+        id: dynamo
+        run: |
+          cd terraform
+          echo "tables=$(terraform output -json dynamodb_table_names)" >> $GITHUB_OUTPUT
+
+      - name: Criar .env
+        run: |
+          cd ansible
+          echo "S3_RAW=${{ steps.s3.outputs.raw }}" > .env
+          echo "S3_TRUSTED=${{ steps.s3.outputs.trusted }}" >> .env
+          echo "S3_CLIENT=${{ steps.s3.outputs.client }}" >> .env
+          echo "DYNAMO_TABLES=${{ steps.dynamo.outputs.tables }}" >> .env
+          cat .env
+
       - name: Instalar dependencias
         run: |
           sudo apt update
           sudo apt install -y python3 python3-pip sshpass
           pip3 install ansible
+
+      - name: Configurar DynamoDB com Ansible
+        run: |
+          cd ansible
+          export ANSIBLE_HOST_KEY_CHECKING=False
+          ansible-playbook -i inventory.ini teste.yml
 
       - name: Configurar EC2 com Ansible
         run: |

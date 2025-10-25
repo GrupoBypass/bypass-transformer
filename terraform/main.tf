@@ -26,7 +26,7 @@ resource "aws_security_group" "ssh_sg" {
     description = "Server"
     from_port   = 5000
     to_port     = 5000
-    protocol    = "http"
+    protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 

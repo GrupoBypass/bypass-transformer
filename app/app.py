@@ -78,7 +78,7 @@ def process_tof():
         
         return jsonify({"status": "ok", "message": "Processamento concluído"}), 200
     except Exception as e:
-        logger.exception("Erro inesperado:", str(e))
+        logger.exception(f"Erro inesperado: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
     
 @app.route("/process-dps", methods=["POST"])
@@ -99,7 +99,7 @@ def process_dps():
         
         return jsonify({"status": "ok", "message": "Processamento concluído"}), 200
     except Exception as e:
-        logger.exception("Erro inesperado:", str(e))
+        logger.exception(f"Erro inesperado: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route("/process-dht11", methods=["POST"])
@@ -120,7 +120,7 @@ def process_dht():
         
         return jsonify({"status": "ok", "message": "Processamento concluído"}), 200
     except Exception as e:
-        logger.exception("Erro inesperado:", str(e))
+        logger.exception(f"Erro inesperado: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route("/process-piezo", methods=["POST"])
@@ -141,7 +141,7 @@ def process_piezo():
         
         return jsonify({"status": "ok", "message": "Processamento concluído"}), 200
     except Exception as e:
-        logger.exception("Erro inesperado:", str(e))
+        logger.exception(f"Erro inesperado: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
     
 @app.route("/process-omron", methods=["POST"])
@@ -162,7 +162,7 @@ def process_omron():
         
         return jsonify({"status": "ok", "message": "Processamento concluído"}), 200
     except Exception as e:
-        logger.exception("Erro inesperado:", str(e))
+        logger.exception(f"Erro inesperado: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
 if __name__ == "__main__":

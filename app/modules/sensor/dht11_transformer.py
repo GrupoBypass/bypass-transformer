@@ -1,7 +1,7 @@
 from pyspark.sql import DataFrame
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import lit
-from transformer import Transformer
+from modules.cleaning.transformer import Transformer
 import os
 import boto3
 from decimal import Decimal
@@ -45,7 +45,8 @@ class DHT11Transformer(Transformer):
         dht11_table = dynamodb.Table("DHT11Data")
         
         for row in df.collect():
-            sensor_id = f"S{row["sensor_id"]}"
+            sensor_value = row.get("sensor_id")
+            sensor_id = f"S{sensor_value}"
             temperatura = float(row["temperature_c"])
             umidade = float(row["humidity_percent"])
             timestamp = row["timestamp"]

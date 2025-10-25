@@ -2,7 +2,7 @@ from pyspark.sql import DataFrame
 from pyspark.sql import SparkSession
 from pyspark.sql.types import IntegerType
 from pyspark.sql.functions import lit
-from transformer import Transformer
+from modules.cleaning.transformer import Transformer
 import os
 import boto3
 from decimal import Decimal
@@ -47,7 +47,8 @@ class DpsTransformer(Transformer):
         dps_table = dynamodb.Table("DpsData")
         
         for row in df.collect():
-            sensor_id = f"S{row["sensor_id"]}"
+            sensor_value = row.get("sensor_id")
+            sensor_id = f"S{sensor_value}"
             status = row["statusDPS"]
             tensao = float(row["picoTensao_kV"])
             corrente = float(row["correnteSurto_kA"])

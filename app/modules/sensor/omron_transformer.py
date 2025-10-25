@@ -1,7 +1,7 @@
 from pyspark.sql import DataFrame
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import lit
-from transformer import Transformer
+from modules.cleaning.transformer import Transformer
 import os
 import boto3
 from decimal import Decimal
@@ -11,7 +11,7 @@ class OmronTransformer(Transformer):
     def main(self, local_input, s3, key):
         local_output_dir = "/tmp/output"
         local_output_file = "/tmp/resultado.csv"   # nome fixo
-        bucket_trusted = "bucket-bypass-trusted-teste"
+        bucket_trusted = os.environ.get("$S3_TRUSTED")
         
         print("Iniciando Spark...")
         spark = SparkSession.builder.appName("DHT11Spark").getOrCreate()
@@ -47,7 +47,7 @@ class OmronTransformer(Transformer):
         # metadata_table = dynamodb.Table("SensorMetadata")
         local_output_dir = "/tmp/output"
         local_output_file = "/tmp/resultado.csv"   # nome fixo
-        bucket_client = "bucket-bypass-client-teste"
+        bucket_client = os.environ.get("$S3_CLIENT")
 
         df.coalesce(1).write.mode("overwrite").option("header", True).csv(local_output_dir)
 

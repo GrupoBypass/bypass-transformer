@@ -12,11 +12,10 @@ from modules.sensor.dht11_transformer import DHT11Transformer
 from modules.sensor.omron_transformer import OmronTransformer
 from modules.sensor.dps_transformer import DpsTransformer
 from modules.sensor.piezo_transformer import PiezoTransformer
-from modules.sensor.optical_transformer import OpticalTransformer
 
 app = Flask(__name__)
 
-BUCKET_RAW = "bucket-bypass-raw-teste"
+BUCKET_RAW = os.environ.get("$S3_RAW")
 LOCAL_INPUT_TOF = "/tmp/input_tof.csv"
 LOCAL_INPUT_DPS = "/tmp/input_dps.csv"
 LOCAL_INPUT_DHT11 = "/tmp/input_dht11.csv"
@@ -43,42 +42,6 @@ def process_test():
     print("Teste recebido:", data)
     return jsonify({"status": "ok", "payload": data})
 
-# @app.route("/process", methods=["POST"])
-# def process_file():
-#     try:
-#         data = request.json or {}
-#         key = data.get("key")
-        
-#         # Chama process_job.py no venv
-#         result = subprocess.run(
-#             [sys.executable, "process_job.py", key],
-#             capture_output=True,
-#             text=True,
-#             check=True
-#         )
-        
-#         print("process_job.py stdout:\n", result.stdout)
-#         print("process_job.py stderr:\n", result.stderr)
-
-#         return jsonify({
-#             "status": "ok",
-#             "stdout": result.stdout,
-#             "stderr": result.stderr
-#         })
-
-#     except subprocess.CalledProcessError as e:
-#         print("Erro ao executar process_job.py")
-#         print("stdout:", e.stdout)
-#         print("stderr:", e.stderr)
-#         return jsonify({
-#             "status": "error",
-#             "stdout": e.stdout,
-#             "stderr": e.stderr
-#         }), 500
-#     except Exception as e:
-#         print("Erro inesperado:", str(e))
-#         return jsonify({"status": "error", "message": str(e)}), 500
-
 @app.route("/process-tof", methods=["POST"])
 def process_tof():
     try:
@@ -101,7 +64,7 @@ def process_tof():
         return jsonify({"status": "error", "message": str(e)}), 500
     
 @app.route("/process-dps", methods=["POST"])
-def process_tof():
+def process_dps():
     try:
         data = request.json or {}
         key = data.get("key")
@@ -122,7 +85,7 @@ def process_tof():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route("/process-dht11", methods=["POST"])
-def process_tof():
+def process_dht():
     try:
         data = request.json or {}
         key = data.get("key")
@@ -143,7 +106,7 @@ def process_tof():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route("/process-piezo", methods=["POST"])
-def process_tof():
+def process_piezo():
     try:
         data = request.json or {}
         key = data.get("key")
@@ -164,7 +127,7 @@ def process_tof():
         return jsonify({"status": "error", "message": str(e)}), 500
     
 @app.route("/process-omron", methods=["POST"])
-def process_tof():
+def process_omron():
     try:
         data = request.json or {}
         key = data.get("key")
@@ -178,27 +141,6 @@ def process_tof():
 
         transformer = OmronTransformer()
         transformer.main(LOCAL_INPUT_OMRON, s3, key)
-        
-        return jsonify({"status": "ok", "message": "Processamento concluído"}), 200
-    except Exception as e:
-        print("Erro inesperado:", str(e))
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-@app.route("/process-optical", methods=["POST"])
-def process_tof():
-    try:
-        data = request.json or {}
-        key = data.get("key")
-        
-        print("Iniciando download do S3...")
-        s3.download_file(BUCKET_RAW, key, LOCAL_INPUT_OPTICAL)
-        print(f"Arquivo baixado localmente: {LOCAL_INPUT_OPTICAL}")
-        
-        if not key or "tof" not in key:
-            return jsonify({"status": "error", "message": "Arquivo inválido"}), 400
-
-        transformer = OpticalTransformer()
-        transformer.main(LOCAL_INPUT_OPTICAL, s3, key)
         
         return jsonify({"status": "ok", "message": "Processamento concluído"}), 200
     except Exception as e:

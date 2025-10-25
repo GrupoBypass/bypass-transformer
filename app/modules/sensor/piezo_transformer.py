@@ -8,7 +8,7 @@ from pyspark.sql.functions import (
     regexp_replace
 )
 from pyspark.sql.window import Window
-from transformer import Transformer
+from modules.cleaning.transformer import Transformer
 import os
 import boto3
 from decimal import Decimal
@@ -18,7 +18,7 @@ class PiezoTransformer(Transformer):
     def main(self, local_input, s3, key):
         local_output_dir = "/tmp/output"
         local_output_file = "/tmp/resultado.csv"   # nome fixo
-        bucket_trusted = "bucket-bypass-trusted-teste"
+        bucket_trusted = os.environ.get("$S3_TRUSTED")
         
         print("Iniciando Spark...")
         spark = SparkSession.builder.appName("PiezoSpark").getOrCreate()
@@ -143,9 +143,12 @@ class PiezoTransformer(Transformer):
         
         # Insere no DynamoDB (tabela TofData)
         for row in df_registry.collect():
-            sensor_id_origem = f"S{row["ID_SENSOR_ORIGEM"]}"
-            sensor_id_destino = f"S{row["ID_SENSOR_DESTINO"]}"
-            trem_id = f"T{row["ID_TREM"]}"
+            sensor_origem_value = row.get("ID_SENSOR_ORIGEM")
+            sensor_id_origem = f"S{sensor_origem_value}"
+            sensor_destino_value = row.get("ID_SENSOR_DESTINO")
+            sensor_id_destino = f"S{sensor_destino_value}"
+            trem_value = row.get("ID_TREM")
+            trem_id = f"T{trem_value}"
             pressao = float(row["PRESSAO"])
             velocidade = float(row["VELOCIDADE"])
             datahora_inicio = row["DATAHORA_INICIO"]
@@ -173,7 +176,7 @@ class PiezoTransformer(Transformer):
         """
         local_output_dir = "/tmp/output"
         local_output_file = "/tmp/resultado.csv"   # nome fixo
-        bucket_client = "bucket-bypass-client-teste"
+        bucket_client = os.environ.get("$S3_CLIENT")
 
         # Janela por sensor e ordenada por DATAHORA_INICIO
         window_sensor = Window.partitionBy("ID_SENSOR_ORIGEM").orderBy("DATAHORA_INICIO")

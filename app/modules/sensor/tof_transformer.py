@@ -16,7 +16,7 @@ class TofTransformer(Transformer):
     def main(self, local_input, s3, key):
         local_output_dir = "/tmp/output"
         local_output_file = "/tmp/tof_trusted.csv"   # nome fixo
-        bucket_trusted = "bucket-bypass-trusted-teste"
+        bucket_trusted = os.environ.get("$S3_TRUSTED")
         
         print("Iniciando Spark...")
         spark = SparkSession.builder.appName("TofSpark").getOrCreate()
@@ -69,7 +69,8 @@ class TofTransformer(Transformer):
         )
         
         for row in result_df.collect():
-            sensor_id = f"S{row["sensor_id"]}"
+            sensor_value = row.get("sensor_id")
+            sensor_id = f"S{sensor_value}"
             ocupacao = float(row["ocupacao_media"])
             timestamp = row["timestamp"]
 
@@ -99,7 +100,7 @@ class TofTransformer(Transformer):
         metadata_table = dynamodb.Table("SensorMetadata")
         local_output_dir = "/tmp/output"
         local_output_file = "/tmp/resultado.csv"   # nome fixo
-        bucket_client = "bucket-bypass-client-teste"
+        bucket_client = os.environ.get("$S3_CLIENT")
 
         df = (df
               .withColumn("y_block", floor(col("y") / 4).cast(IntegerType()))

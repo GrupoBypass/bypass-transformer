@@ -2,7 +2,7 @@ from pyspark.sql import DataFrame
 from pyspark.sql import SparkSession
 from pyspark.sql.types import IntegerType
 from pyspark.sql.functions import lit
-from transformer import Transformer
+from modules.cleaning.transformer import Transformer
 import os
 import boto3
 from decimal import Decimal
@@ -12,7 +12,7 @@ class DpsTransformer(Transformer):
     def main(self, local_input, s3, key):
         local_output_dir = "/tmp/output"
         local_output_file = "/tmp/resultado.csv"   # nome fixo
-        bucket_trusted = "bucket-bypass-trusted-teste"
+        bucket_trusted = os.environ.get("$S3_TRUSTED")
         
         print("Iniciando Spark...")
         spark = SparkSession.builder.appName("TofSpark").getOrCreate()
@@ -47,7 +47,8 @@ class DpsTransformer(Transformer):
         dps_table = dynamodb.Table("DpsData")
         
         for row in df.collect():
-            sensor_id = f"S{row["sensor_id"]}"
+            sensor_value = row.get("sensor_id")
+            sensor_id = f"S{sensor_value}"
             status = row["statusDPS"]
             tensao = float(row["picoTensao_kV"])
             corrente = float(row["correnteSurto_kA"])
@@ -77,7 +78,7 @@ class DpsTransformer(Transformer):
         circuito_table = dynamodb.Table("Circuito")
         local_output_dir = "/tmp/output"
         local_output_file = "/tmp/resultado.csv"   # nome fixo
-        bucket_client = "bucket-bypass-client-teste"
+        bucket_client = os.environ.get("$S3_CLIENT")
     
         # Pega o primeiro sensor_id (assume que só tem um sensor no arquivo)
         sensor_id = f"S{df.select('sensor_id').first()['sensor_id']}"

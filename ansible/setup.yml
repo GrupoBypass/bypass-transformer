@@ -72,6 +72,15 @@
         group: root
         mode: 0755
 
+    - name: Copiar o arquivo .env para o diretório da aplicação
+      copy:
+        src: "{{ playbook_dir }}/.env"
+        dest: /opt/app
+        owner: root
+        group: root
+        mode: 0755
+
+
     - name: Build da imagem Docker
       community.docker.docker_image:
         name: bypass-transformer
@@ -84,5 +93,6 @@
         name: bypass-transformer-container
         image: bypass-transformer
         state: started
+        recreate: true
         ports:
           - "5000:5000"

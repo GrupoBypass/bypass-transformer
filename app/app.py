@@ -57,7 +57,7 @@ s3 = session.client("s3")
 @app.route("/process-test", methods=["POST"])
 def process_test():
     data = request.json or {}
-    print("Teste recebido:", data)
+    logger.info("Teste recebido:", data)
     return jsonify({"status": "ok", "payload": data})
 
 @app.route("/process-tof", methods=["POST"])
@@ -66,9 +66,9 @@ def process_tof():
         data = request.json or {}
         key = data.get("key")
         
-        print("Iniciando download do S3...")
+        logger.info("Iniciando download do S3...")
         s3.download_file(BUCKET_RAW, key, LOCAL_INPUT_TOF)
-        print(f"Arquivo baixado localmente: {LOCAL_INPUT_TOF}")
+        logger.info(f"Arquivo baixado localmente: {LOCAL_INPUT_TOF}")
         
         if not key or "tof" not in key:
             return jsonify({"status": "error", "message": "Arquivo inválido"}), 400
@@ -78,7 +78,7 @@ def process_tof():
         
         return jsonify({"status": "ok", "message": "Processamento concluído"}), 200
     except Exception as e:
-        print("Erro inesperado:", str(e))
+        logger.exception("Erro inesperado:", str(e))
         return jsonify({"status": "error", "message": str(e)}), 500
     
 @app.route("/process-dps", methods=["POST"])
@@ -87,9 +87,9 @@ def process_dps():
         data = request.json or {}
         key = data.get("key")
         
-        print("Iniciando download do S3...")
+        logger.info("Iniciando download do S3...")
         s3.download_file(BUCKET_RAW, key, LOCAL_INPUT_DPS)
-        print(f"Arquivo baixado localmente: {LOCAL_INPUT_DPS}")
+        logger.info(f"Arquivo baixado localmente: {LOCAL_INPUT_DPS}")
         
         if not key or "tof" not in key:
             return jsonify({"status": "error", "message": "Arquivo inválido"}), 400
@@ -99,7 +99,7 @@ def process_dps():
         
         return jsonify({"status": "ok", "message": "Processamento concluído"}), 200
     except Exception as e:
-        print("Erro inesperado:", str(e))
+        logger.exception("Erro inesperado:", str(e))
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route("/process-dht11", methods=["POST"])
@@ -108,9 +108,9 @@ def process_dht():
         data = request.json or {}
         key = data.get("key")
         
-        print("Iniciando download do S3...")
+        logger.info("Iniciando download do S3...")
         s3.download_file(BUCKET_RAW, key, LOCAL_INPUT_DHT11)
-        print(f"Arquivo baixado localmente: {LOCAL_INPUT_DHT11}")
+        logger.info(f"Arquivo baixado localmente: {LOCAL_INPUT_DHT11}")
         
         if not key or "tof" not in key:
             return jsonify({"status": "error", "message": "Arquivo inválido"}), 400
@@ -120,13 +120,12 @@ def process_dht():
         
         return jsonify({"status": "ok", "message": "Processamento concluído"}), 200
     except Exception as e:
-        print("Erro inesperado:", str(e))
+        logger.exception("Erro inesperado:", str(e))
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route("/process-piezo", methods=["POST"])
 def process_piezo():
     try:
-        logger.info(f"Access Key Id: {AWS_ACCESS_KEY_ID}")
         data = request.json or {}
         key = data.get("key")
         
@@ -142,7 +141,7 @@ def process_piezo():
         
         return jsonify({"status": "ok", "message": "Processamento concluído"}), 200
     except Exception as e:
-        print("Erro inesperado:", str(e))
+        logger.exception("Erro inesperado:", str(e))
         return jsonify({"status": "error", "message": str(e)}), 500
     
 @app.route("/process-omron", methods=["POST"])
@@ -151,9 +150,9 @@ def process_omron():
         data = request.json or {}
         key = data.get("key")
         
-        print("Iniciando download do S3...")
+        logger.info("Iniciando download do S3...")
         s3.download_file(BUCKET_RAW, key, LOCAL_INPUT_OMRON)
-        print(f"Arquivo baixado localmente: {LOCAL_INPUT_OMRON}")
+        logger.info(f"Arquivo baixado localmente: {LOCAL_INPUT_OMRON}")
         
         if not key or "tof" not in key:
             return jsonify({"status": "error", "message": "Arquivo inválido"}), 400
@@ -163,12 +162,11 @@ def process_omron():
         
         return jsonify({"status": "ok", "message": "Processamento concluído"}), 200
     except Exception as e:
-        print("Erro inesperado:", str(e))
+        logger.exception("Erro inesperado:", str(e))
         return jsonify({"status": "error", "message": str(e)}), 500
 
 if __name__ == "__main__":
     load_dotenv()
-    logger.info(f"Access Key Id: {AWS_ACCESS_KEY_ID}")
 
     session = boto3.Session(
             aws_access_key_id=AWS_ACCESS_KEY_ID,

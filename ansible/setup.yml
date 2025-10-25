@@ -18,6 +18,7 @@
       pip:
         name: docker
         executable: pip3
+        extra_args: "--ignore-installed"
 
     - name: Habilitar e iniciar o serviço Docker
       systemd:

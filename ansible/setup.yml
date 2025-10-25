@@ -51,5 +51,6 @@
         name: bypass-transformer-container
         image: bypass-transformer
         state: started
+        recreate: true
         ports:
           - "5000:5000"

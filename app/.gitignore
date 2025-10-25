@@ -1,0 +1,69 @@
+# -----------------------
+# Python
+# -----------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+*.manifest
+*.spec
+
+# -----------------------
+# Virtualenv / venv
+# -----------------------
+venv/
+env/
+ENV/
+.venv/
+.python-version
+
+# -----------------------
+# PySpark / Spark
+# -----------------------
+spark-warehouse/
+*.log
+*.out
+*.pid
+*.checkpoint
+*.eventlog/
+*.tmp/
+*.lz4
+*.snappy
+
+# -----------------------
+# Jupyter
+# -----------------------
+.ipynb_checkpoints/
+
+# -----------------------
+# Docker
+# -----------------------
+*.tar
+*.tar.gz
+docker-compose.override.yml
+*.env
+**/Dockerfile.*.swp
+**/docker-compose.override.yml
+docker-compose.override.yml
+.docker/
+
+# -----------------------
+# IDEs / Editors
+# -----------------------
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+*.iml
+
+# -----------------------
+# OS
+# -----------------------
+.DS_Store
+Thumbs.db
+

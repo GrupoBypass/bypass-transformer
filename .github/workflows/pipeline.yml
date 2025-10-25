@@ -47,15 +47,6 @@ jobs:
           echo "trusted=$(terraform output -raw trusted_bucket_name)" >> $GITHUB_OUTPUT
           echo "client=$(terraform output -raw client_bucket_name)" >> $GITHUB_OUTPUT
 
-
-      - name: Criar .env
-        run: |
-          cd ansible
-          echo "S3_RAW=${{ steps.s3.outputs.raw }}" > .env
-          echo "S3_TRUSTED=${{ steps.s3.outputs.trusted }}" >> .env
-          echo "S3_CLIENT=${{ steps.s3.outputs.client }}" >> .env
-          cat .env
-
       - name: Adicionar chave SSH
         run: |
           echo "${{ secrets.EC2_SSH_KEY }}" > ansible/bypass-key.pem
@@ -65,7 +56,9 @@ jobs:
         id: dynamo
         run: |
           cd terraform
-          echo "tables=$(terraform output -json dynamodb_table_names)" >> $GITHUB_OUTPUT
+          echo "TABLE_CIRCUITO=$(terraform output -raw aws_dynamodb_table_circuito_name)" >> $GITHUB_OUTPUT
+          echo "TABLE_SENSOR_METADATA=$(terraform output -raw aws_dynamodb_table_sensor_metadata_name)" >> $GITHUB_OUTPUT
+          echo "TABLE_PIEZO_SENSOR_DISTANCIA=$(terraform output -raw aws_dynamodb_table_piezo_sensor_distancia_name)" >> $GITHUB_OUTPUT
 
       - name: Criar .env
         run: |
@@ -73,7 +66,9 @@ jobs:
           echo "S3_RAW=${{ steps.s3.outputs.raw }}" > .env
           echo "S3_TRUSTED=${{ steps.s3.outputs.trusted }}" >> .env
           echo "S3_CLIENT=${{ steps.s3.outputs.client }}" >> .env
-          echo "DYNAMO_TABLES=${{ steps.dynamo.outputs.tables }}" >> .env
+          echo "DYNAMO_TABLE_CIRCUITO=${{ steps.dynamo.outputs.TABLE_CIRCUITO }}" >> .env
+          echo "DYNAMO_TABLE_SENSOR_METADATA=${{ steps.dynamo.outputs.TABLE_SENSOR_METADATA }}" >> .env
+          echo "DYNAMO_TABLE_PIEZO_SENSOR_DISTANCIA=${{ steps.dynamo.outputs.TABLE_PIEZO_SENSOR_DISTANCIA }}" >> .env
           cat .env
 
       - name: Instalar dependencias

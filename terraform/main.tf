@@ -2,6 +2,14 @@ provider "aws" {
   region = var.aws_region
 }
 
+terraform {
+  backend "s3" {
+    bucket = "bypass-terraform-state"
+    key    = "terraform/state.tfstate"
+    region = "us-east-1"
+  }
+}
+
 resource "aws_security_group" "ssh_sg" {
   name        = "ssh-access"
   description = "Allow SSH inbound traffic"
@@ -62,7 +70,7 @@ resource "aws_instance" "transformer" {
   vpc_security_group_ids = [aws_security_group.ssh_sg.id]
 
   tags = {
-    Name = "Transformer-EC2"
+    Name = "bypass-transformer-ec2"
   }
 }
 

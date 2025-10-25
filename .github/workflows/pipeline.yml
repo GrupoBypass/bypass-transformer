@@ -63,9 +63,9 @@ jobs:
       - name: Criar .env
         run: |
           cd ansible
-          echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID}}" > .env
-          echo "AWS_SECRET_ACCESS_KEY_ID=${{ secrets.AWS_SECRET_ACCESS_KEY_ID}}" >> .env
-          echo "AWS_SESSION_TOKEN=${{ secrets.AWS_SESSION_TOKEN}}" >> .env
+          echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" > .env
+          echo "AWS_SECRET_ACCESS_KEY_ID=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> .env
+          echo "AWS_SESSION_TOKEN=${{ secrets.AWS_SESSION_TOKEN }}" >> .env
           echo "S3_RAW=${{ steps.s3.outputs.raw }}" >> .env
           echo "S3_TRUSTED=${{ steps.s3.outputs.trusted }}" >> .env
           echo "S3_CLIENT=${{ steps.s3.outputs.client }}" >> .env

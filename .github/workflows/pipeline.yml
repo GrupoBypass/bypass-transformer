@@ -42,16 +42,16 @@ jobs:
       - name: Obter nomes do s3
         run: |
           cd terraform
-          RAW=$(terraform output -raw raw_bucket_name) >> $GITHUB_OUTPUT
-          TRUSTED=$(terraform output -raw trusted_bucket_name) >> $GITHUB_OUTPUT
-          CLIENT=$(terraform output -raw client_bucket_name) >> $GITHUB_OUTPUT
+          raw=$(terraform output -raw raw_bucket_name) >> $GITHUB_OUTPUT
+          trusted=$(terraform output -raw trusted_bucket_name) >> $GITHUB_OUTPUT
+          client=$(terraform output -raw client_bucket_name) >> $GITHUB_OUTPUT
 
       - name: Criar .env
         run: |
           cd ansible
-          echo "S3_RAW=$RAW" > .env
-          echo "S3_TRUSTED=$TRUSTED" >> .env
-          echo "S3_CLIENT=$CLIENT" >> .env
+          echo "S3_RAW=${{ steps.ec2.outputs.raw }}" > .env
+          echo "S3_TRUSTED=${{ steps.ec2.outputs.trusted }}" >> .env
+          echo "S3_CLIENT=${{ steps.ec2.outputs.client }}" >> .env
 
       - name: Adicionar chave SSH
         run: |

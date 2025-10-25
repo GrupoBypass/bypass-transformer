@@ -1,0 +1,33 @@
+---
+  hosts: ec2
+  become: yes
+  vars_files:
+    - .env
+
+  tasks:
+    - name: Instalar AWS CLI
+      ansible.builtin.yum:
+        name: awscli
+        state: present
+
+    - name: Criar diretório de dumps
+      ansible.builtin.file:
+        path: /home/ec2-user/dumps
+        state: directory
+
+    - name: Copiar dumps existentes para EC2
+      ansible.builtin.copy:
+        src: "./dumps/"
+        dest: "/home/ec2-user/dumps/"
+        mode: '0644'
+
+    - name: Importar dumps disponíveis no DynamoDB
+      ansible.builtin.shell: |
+        for dump in /home/ec2-user/dumps/*.json; do
+          table=$(basename "$dump" _dump.json)
+          echo "Importando $dump na tabela $table..."
+          aws dynamodb batch-write-item \
+            --request-items file://"$dump" \
+            --region us-east-1 || true
+        done
+

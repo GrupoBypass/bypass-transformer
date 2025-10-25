@@ -47,7 +47,7 @@ AWS_SESSION_TOKEN = os.environ.get("AWS_SESSION_TOKEN")
 
 session = boto3.Session(
             aws_access_key_id=AWS_ACCESS_KEY_ID,
-            aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+            aws_secret_access_key=AWS_SECRET_ACCESS_KEY_ID,
             aws_session_token=AWS_SESSION_TOKEN,
             region_name="us-east-1"
         )
@@ -170,7 +170,7 @@ if __name__ == "__main__":
 
     session = boto3.Session(
             aws_access_key_id=AWS_ACCESS_KEY_ID,
-            aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+            aws_secret_access_key=AWS_SECRET_ACCESS_KEY_ID,
             region_name="us-east-1"
         )
         

@@ -15,7 +15,7 @@ from modules.sensor.piezo_transformer import PiezoTransformer
 
 app = Flask(__name__)
 
-BUCKET_RAW = "bucket-bypass-raw-teste"
+BUCKET_RAW = os.environ.get("$S3_RAW")
 LOCAL_INPUT_TOF = "/tmp/input_tof.csv"
 LOCAL_INPUT_DPS = "/tmp/input_dps.csv"
 LOCAL_INPUT_DHT11 = "/tmp/input_dht11.csv"
@@ -41,42 +41,6 @@ def process_test():
     data = request.json or {}
     print("Teste recebido:", data)
     return jsonify({"status": "ok", "payload": data})
-
-# @app.route("/process", methods=["POST"])
-# def process_file():
-#     try:
-#         data = request.json or {}
-#         key = data.get("key")
-        
-#         # Chama process_job.py no venv
-#         result = subprocess.run(
-#             [sys.executable, "process_job.py", key],
-#             capture_output=True,
-#             text=True,
-#             check=True
-#         )
-        
-#         print("process_job.py stdout:\n", result.stdout)
-#         print("process_job.py stderr:\n", result.stderr)
-
-#         return jsonify({
-#             "status": "ok",
-#             "stdout": result.stdout,
-#             "stderr": result.stderr
-#         })
-
-#     except subprocess.CalledProcessError as e:
-#         print("Erro ao executar process_job.py")
-#         print("stdout:", e.stdout)
-#         print("stderr:", e.stderr)
-#         return jsonify({
-#             "status": "error",
-#             "stdout": e.stdout,
-#             "stderr": e.stderr
-#         }), 500
-#     except Exception as e:
-#         print("Erro inesperado:", str(e))
-#         return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route("/process-tof", methods=["POST"])
 def process_tof():

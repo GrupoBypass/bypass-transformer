@@ -39,6 +39,20 @@ jobs:
           echo "[ec2]" > ansible/inventory.ini
           echo "${{ steps.ec2.outputs.ip }} ansible_user=ec2-user ansible_ssh_private_key_file=bypass-key.pem" >> ansible/inventory.ini
 
+      - name: Obter nomes do s3
+        run: |
+          cd terraform
+          RAW=$(terraform output -raw s3_raw_bucket)
+          TRUSTED=$(terraform output -raw s3_trusted_bucket)
+          CLIENT=$(terraform output -raw s3_client_bucket)
+
+      - name: Criar .env
+        run: |
+          cd ../ansible
+          echo "S3_RAW=$RAW" > .env
+          echo "S3_TRUSTED=$TRUSTED" >> .env
+          echo "S3_CLIENT=$CLIENT" >> .env
+
       - name: Adicionar chave SSH
         run: |
           echo "${{ secrets.EC2_SSH_KEY }}" > ansible/bypass-key.pem

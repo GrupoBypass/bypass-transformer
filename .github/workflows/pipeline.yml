@@ -42,9 +42,9 @@ jobs:
       - name: Obter nomes do s3
         run: |
           cd terraform
-          RAW=$(terraform output -raw raw_bucket_name)
-          TRUSTED=$(terraform output -raw trusted_bucket_name)
-          CLIENT=$(terraform output -raw client_bucket_name)
+          RAW=$(terraform output -raw raw_bucket_name) >> $GITHUB_OUTPUT
+          TRUSTED=$(terraform output -raw trusted_bucket_name) >> $GITHUB_OUTPUT
+          CLIENT=$(terraform output -raw client_bucket_name) >> $GITHUB_OUTPUT
 
       - name: Criar .env
         run: |

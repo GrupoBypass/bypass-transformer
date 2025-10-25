@@ -39,20 +39,22 @@ jobs:
           echo "[ec2]" > ansible/inventory.ini
           echo "${{ steps.ec2.outputs.ip }} ansible_user=ec2-user ansible_ssh_private_key_file=bypass-key.pem" >> ansible/inventory.ini
 
-      - name: Obter nomes do s3
+      - name: Obter nomes do S3 do Terraform
+        id: s3
         run: |
           cd terraform
-          raw=$(terraform output -raw raw_bucket_name) >> $GITHUB_OUTPUT
-          trusted=$(terraform output -raw trusted_bucket_name) >> $GITHUB_OUTPUT
-          client=$(terraform output -raw client_bucket_name) >> $GITHUB_OUTPUT
+          echo "raw=$(terraform output -raw raw_bucket_name)" >> $GITHUB_OUTPUT
+          echo "trusted=$(terraform output -raw trusted_bucket_name)" >> $GITHUB_OUTPUT
+          echo "client=$(terraform output -raw client_bucket_name)" >> $GITHUB_OUTPUT
+
 
       - name: Criar .env
         run: |
           cd ansible
-          echo "S3_RAW=${{ steps.ec2.outputs.raw }}" > .env
-          echo "S3_TRUSTED=${{ steps.ec2.outputs.trusted }}" >> .env
-          echo "S3_CLIENT=${{ steps.ec2.outputs.client }}" >> .env
-          echo .env
+          echo "S3_RAW=${{ steps.s3.outputs.raw }}" > .env
+          echo "S3_TRUSTED=${{ steps.s3.outputs.trusted }}" >> .env
+          echo "S3_CLIENT=${{ steps.s3.outputs.client }}" >> .env
+          cat .env
 
       - name: Adicionar chave SSH
         run: |

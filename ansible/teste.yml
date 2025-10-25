@@ -1,5 +1,5 @@
 ---
-  hosts: ec2
+- hosts: ec2
   become: yes
   vars_files:
     - .env
@@ -14,12 +14,17 @@
       ansible.builtin.file:
         path: /home/ec2-user/dumps
         state: directory
+        owner: ec2-user
+        group: ec2-user
+        mode: '0755'
 
     - name: Copiar dumps existentes para EC2
-      ansible.builtin.copy:
+      ansible.builtin.synchronize:
         src: "./dumps/"
         dest: "/home/ec2-user/dumps/"
-        mode: '0644'
+        mode: push
+        recursive: yes
+      delegate_to: localhost
 
     - name: Importar dumps disponíveis no DynamoDB
       ansible.builtin.shell: |
@@ -28,6 +33,8 @@
           echo "Importando $dump na tabela $table..."
           aws dynamodb batch-write-item \
             --request-items file://"$dump" \
-            --region us-east-1 || true
+            --region us-east-1
         done
+      args:
+        executable: /bin/bash
 

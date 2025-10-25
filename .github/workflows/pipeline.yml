@@ -52,6 +52,7 @@ jobs:
           echo "S3_RAW=${{ steps.ec2.outputs.raw }}" > .env
           echo "S3_TRUSTED=${{ steps.ec2.outputs.trusted }}" >> .env
           echo "S3_CLIENT=${{ steps.ec2.outputs.client }}" >> .env
+          echo .env
 
       - name: Adicionar chave SSH
         run: |

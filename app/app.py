@@ -14,6 +14,7 @@ from modules.sensor.dht11_transformer import DHT11Transformer
 from modules.sensor.omron_transformer import OmronTransformer
 from modules.sensor.dps_transformer import DpsTransformer
 from modules.sensor.piezo_transformer import PiezoTransformer
+from dotenv import load_dotenv
 
 sys.stdout.reconfigure(line_buffering=True)
 sys.stderr.reconfigure(line_buffering=True)
@@ -25,9 +26,12 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[logging.StreamHandler(sys.stdout)]  # Output to stdout (Docker reads this)
 )
+
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
+
+load_dotenv()
 
 BUCKET_RAW = os.environ.get("S3_RAW")
 LOCAL_INPUT_TOF = "/tmp/input_tof.csv"
@@ -163,6 +167,7 @@ def process_omron():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 if __name__ == "__main__":
+    load_dotenv()
     logger.info(f"Access Key Id: {AWS_ACCESS_KEY_ID}")
 
     session = boto3.Session(
@@ -173,4 +178,4 @@ if __name__ == "__main__":
         
     s3 = session.client("s3")
     
-    app.run(host="0.0.0.0", port=5000)
+    app.run(host="0.0.0.0", port=5000, debug=True, use_reloader=False)

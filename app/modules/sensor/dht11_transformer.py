@@ -11,7 +11,7 @@ class DHT11Transformer(Transformer):
     def main(self, local_input, s3, key):
         local_output_dir = "/tmp/output"
         local_output_file = "/tmp/resultado.csv"   # nome fixo
-        bucket_trusted = os.environ.get("$S3_TRUSTED")
+        bucket_trusted = os.environ.get("S3_TRUSTED")
         
         print("Iniciando Spark...")
         spark = SparkSession.builder.appName("DHT11Spark").getOrCreate()
@@ -78,7 +78,7 @@ class DHT11Transformer(Transformer):
         metadata_table = dynamodb.Table("SensorMetadata")
         local_output_dir = "/tmp/output"
         local_output_file = "/tmp/resultado.csv"   # nome fixo
-        bucket_client = os.environ.get("$S3_CLIENT")
+        bucket_client = os.environ.get("S3_CLIENT")
 
         # Pega o primeiro sensor_id (assume que só tem um sensor no arquivo)
         sensor_id = f"S{df.select('sensor_id').first()['sensor_id']}"

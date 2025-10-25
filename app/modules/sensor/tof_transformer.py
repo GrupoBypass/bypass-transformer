@@ -9,14 +9,14 @@ from decimal import Decimal
 
 class TofTransformer(Transformer):
 
-    AWS_ACESS_KEY_ID = os.environ.get("$AWS_ACCESS_KEY_ID")
-    AWS_SECRET_ACESS_KEY = os.environ.get("$AWS_SECRET_ACCESS_KEY")
-    AWS_SESSION_TOKEN = os.environ.get("$AWS_SESSION_TOKEN")
+    AWS_ACESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
+    AWS_SECRET_ACESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
+    AWS_SESSION_TOKEN = os.environ.get("AWS_SESSION_TOKEN")
     
     def main(self, local_input, s3, key):
         local_output_dir = "/tmp/output"
         local_output_file = "/tmp/tof_trusted.csv"   # nome fixo
-        bucket_trusted = os.environ.get("$S3_TRUSTED")
+        bucket_trusted = os.environ.get("S3_TRUSTED")
         
         print("Iniciando Spark...")
         spark = SparkSession.builder.appName("TofSpark").getOrCreate()
@@ -50,9 +50,9 @@ class TofTransformer(Transformer):
         dynamodb = boto3.resource(
             "dynamodb",
             region_name="us-east-1",
-            aws_access_key_id="YOUR_ACCESS_KEY",
-            aws_secret_access_key="YOUR_SECRET_KEY",
-            aws_session_token="YOUR_SESSION_TOKEN"  # optional, only if using temporary credentials (e.g., STS)
+            aws_access_key_id=self.AWS_ACESS_KEY_ID,
+            aws_secret_access_key=self.AWS_SECRET_ACESS_KEY,
+            aws_session_token=self.AWS_SESSION_TOKEN
         )
         dynamodb = boto3.resource("dynamodb", region_name="us-east-1")
         metadata_table = dynamodb.Table("SensorMetadata")
@@ -100,7 +100,7 @@ class TofTransformer(Transformer):
         metadata_table = dynamodb.Table("SensorMetadata")
         local_output_dir = "/tmp/output"
         local_output_file = "/tmp/resultado.csv"   # nome fixo
-        bucket_client = os.environ.get("$S3_CLIENT")
+        bucket_client = os.environ.get("S3_CLIENT")
 
         df = (df
               .withColumn("y_block", floor(col("y") / 4).cast(IntegerType()))

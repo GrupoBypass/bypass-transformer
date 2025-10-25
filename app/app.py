@@ -15,7 +15,7 @@ from modules.sensor.piezo_transformer import PiezoTransformer
 
 app = Flask(__name__)
 
-BUCKET_RAW = os.environ.get("$S3_RAW")
+BUCKET_RAW = os.environ.get("S3_RAW")
 LOCAL_INPUT_TOF = "/tmp/input_tof.csv"
 LOCAL_INPUT_DPS = "/tmp/input_dps.csv"
 LOCAL_INPUT_DHT11 = "/tmp/input_dht11.csv"
@@ -23,9 +23,9 @@ LOCAL_INPUT_OMRON = "/tmp/input_omron.csv"
 LOCAL_INPUT_PIEZO = "/tmp/input_piezo.csv"
 LOCAL_INPUT_OPTICAL = "/tmp/input_optical.csv"
 
-AWS_ACESS_KEY_ID = os.environ.get("$AWS_ACCESS_KEY_ID")
-AWS_SECRET_ACESS_KEY = os.environ.get("$AWS_SECRET_ACCESS_KEY")
-AWS_SESSION_TOKEN = os.environ.get("$AWS_SESSION_TOKEN")
+AWS_ACESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
+AWS_SESSION_TOKEN = os.environ.get("AWS_SESSION_TOKEN")
 
 session = boto3.Session(
             aws_access_key_id=AWS_ACESS_KEY_ID,

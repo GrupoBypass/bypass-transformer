@@ -130,9 +130,9 @@ def process_piezo():
         data = request.json or {}
         key = data.get("key")
         
-        print("Iniciando download do S3...")
+        logger.info("Iniciando download do S3...")
         s3.download_file(BUCKET_RAW, key, LOCAL_INPUT_PIEZO)
-        print(f"Arquivo baixado localmente: {LOCAL_INPUT_PIEZO}")
+        logger.info(f"Arquivo baixado localmente: {LOCAL_INPUT_PIEZO}")
         
         if not key or "tof" not in key:
             return jsonify({"status": "error", "message": "Arquivo inválido"}), 400

@@ -53,6 +53,7 @@
         build:
           path: /opt/app
         source: build
+        force_source: true
 
     - name: Rodar o container
       community.docker.docker_container:

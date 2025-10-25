@@ -64,7 +64,6 @@
           - "5000:5000"
 
 # --- SEGUNDO PLAY ---
----
 - name: Configurar e popular DynamoDB
   hosts: ec2
   become: yes

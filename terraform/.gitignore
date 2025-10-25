@@ -1,0 +1,83 @@
+# ==========================
+# Terraform padrão
+# ==========================
+
+# Arquivos locais de estado
+*.tfstate
+*.tfstate.*
+*.tfvars.json
+
+# Backups de estado
+crash.log
+crash.*.log
+
+# Diretório local de cache e planos
+.terraform/
+.terraform.lock.hcl
+terraform.tfstate.backup
+terraform.tfplan
+*.tfplan
+
+# Arquivos de variáveis sensíveis
+*.tfvars
+terraform.tfvars
+
+# Logs locais e temporários
+*.log
+*.tmp
+*.bak
+*.swp
+*.swo
+
+# Saídas e arquivos de teste
+output.json
+plan.out
+
+# ==========================
+# IDEs e editores
+# ==========================
+
+# VSCode
+.vscode/
+.history/
+*.code-workspace
+
+# JetBrains / IntelliJ / PyCharm
+.idea/
+*.iml
+out/
+
+# Vim / Neovim
+*.swp
+*.swo
+.session.vim
+.tags
+*.un~
+
+# Linux / macOS / Windows system files
+.DS_Store
+Thumbs.db
+
+# ==========================
+# Scripts e chaves privadas
+# ==========================
+
+# Chaves SSH ou credenciais
+*.pem
+*.key
+*.crt
+*.csr
+*.pub
+secrets.*
+.env
+.env.*
+
+# ==========================
+# Outros
+# ==========================
+
+# Arquivos temporários do sistema
+tmp/
+.cache/
+logs/
+

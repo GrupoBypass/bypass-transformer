@@ -77,12 +77,6 @@ jobs:
           sudo apt install -y python3 python3-pip sshpass
           pip3 install ansible
 
-      - name: Configurar DynamoDB com Ansible
-        run: |
-          cd ansible
-          export ANSIBLE_HOST_KEY_CHECKING=False
-          ansible-playbook -i inventory.ini teste.yml
-
       - name: Configurar EC2 com Ansible
         run: |
           cd ansible

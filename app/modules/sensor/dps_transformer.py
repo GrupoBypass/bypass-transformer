@@ -10,14 +10,14 @@ from decimal import Decimal
 class DpsTransformer(Transformer):
     
     AWS_ACESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
-    AWS_SECRET_ACESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
+    AWS_SECRET_ACCESS_KEY_ID = os.environ.get("AWS_SECRET_ACCESS_KEY_ID")
     AWS_SESSION_TOKEN = os.environ.get("AWS_SESSION_TOKEN")
     
     dynamodb = boto3.resource(
             "dynamodb",
             region_name="us-east-1",
             aws_access_key_id=AWS_ACESS_KEY_ID,
-            aws_secret_access_key=AWS_SECRET_ACESS_KEY,
+            aws_secret_access_key=AWS_SECRET_ACCESS_KEY_ID,
             aws_session_token=AWS_SESSION_TOKEN
     )
 

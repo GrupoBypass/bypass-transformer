@@ -65,7 +65,7 @@ resource "aws_s3_bucket_versioning" "versioning-client" {
 
 resource "aws_instance" "transformer" {
   ami                    = "ami-0341d95f75f311023"
-  instance_type          = "t2.micro"
+  instance_type          = "t2.medium"
   key_name               = "bypass-key"
   vpc_security_group_ids = [aws_security_group.ssh_sg.id]
 

@@ -1,0 +1,54 @@
+---
+- hosts: ec2
+  become: yes
+  tasks:
+    - name: Atualizar pacotes
+      yum:
+        name: "*"
+        state: latest
+
+    - name: Instalar pacotes básicos
+      yum:
+        name:
+          - docker
+          - python3-pip
+        state: present
+
+    - name: Instalar módulo Docker do Python
+      pip:
+        name: docker
+        executable: pip3
+
+    - name: Habilitar e iniciar o serviço Docker
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Criar diretório do projeto
+      file:
+        path: /opt/app
+        state: directory
+
+    - name: Copiar Dockerfile e código da aplicação
+      copy:
+        src: ./app/
+        dest: /opt/app/
+        owner: root
+        group: root
+        mode: 0755
+
+    - name: Build da imagem Docker
+      community.docker.docker_image:
+        name: bypass-transformer
+        build:
+          path: /opt/app
+        source: build
+
+    - name: Rodar o container
+      community.docker.docker_container:
+        name: bypass-transformer-container
+        image: bypass-transformer
+        state: started
+        ports:
+          - "5000:5000"

@@ -158,11 +158,11 @@ class PiezoTransformer(Transformer):
         
         # Insere no DynamoDB (tabela TofData)
         for row in df_registry.collect():
-            sensor_origem_value = row.get("ID_SENSOR_ORIGEM")
+            sensor_origem_value = row["ID_SENSOR_ORIGEM"]
             sensor_id_origem = f"S{sensor_origem_value}"
-            sensor_destino_value = row.get("ID_SENSOR_DESTINO")
+            sensor_destino_value = row["ID_SENSOR_DESTINO"]
             sensor_id_destino = f"S{sensor_destino_value}"
-            trem_value = row.get("ID_TREM")
+            trem_value = row["ID_TREM"]
             trem_id = f"T{trem_value}"
             pressao = float(row["PRESSAO"])
             velocidade = float(row["VELOCIDADE"])

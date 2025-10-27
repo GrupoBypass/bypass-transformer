@@ -15,17 +15,18 @@ from decimal import Decimal
 
 class PiezoTransformer(Transformer):
     
-    AWS_ACESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
-    AWS_SECRET_ACCESS_KEY_ID = os.environ.get("AWS_SECRET_ACCESS_KEY_ID")
-    AWS_SESSION_TOKEN = os.environ.get("AWS_SESSION_TOKEN")
-    
-    dynamodb = boto3.resource(
-            "dynamodb",
-            region_name="us-east-1",
-            aws_access_key_id=AWS_ACESS_KEY_ID,
-            aws_secret_access_key=AWS_SECRET_ACCESS_KEY_ID,
-            aws_session_token=AWS_SESSION_TOKEN
-    )
+    def __init__(self):    
+        AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
+        AWS_SECRET_ACCESS_KEY_ID = os.environ.get("AWS_SECRET_ACCESS_KEY_ID")
+        AWS_SESSION_TOKEN = os.environ.get("AWS_SESSION_TOKEN")
+        
+        self.dynamodb = boto3.resource(
+                "dynamodb",
+                region_name="us-east-1",
+                aws_access_key_id=AWS_ACCESS_KEY_ID,
+                aws_secret_access_key=AWS_SECRET_ACCESS_KEY_ID,
+                aws_session_token=AWS_SESSION_TOKEN
+        )
     
     def main(self, local_input, s3, key):
         local_output_dir = "/tmp/output"

@@ -5,10 +5,12 @@ from modules.cleaning.transformer import Transformer
 import os
 import boto3
 from decimal import Decimal
+from dotenv import load_dotenv
 
 class DHT11Transformer(Transformer):
     
-    def __init__(self):    
+    def __init__(self):
+        load_dotenv()
         AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
         AWS_SECRET_ACCESS_KEY_ID = os.environ.get("AWS_SECRET_ACCESS_KEY_ID")
         AWS_SESSION_TOKEN = os.environ.get("AWS_SESSION_TOKEN")

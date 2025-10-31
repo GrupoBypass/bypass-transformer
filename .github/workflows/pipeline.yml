@@ -67,13 +67,14 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y python3 python3-pip sshpass
-          pip3 install ansible boto3
+          pip3 install ansible boto3 python-dotenv
 
       - name: Upload DynamoDB JSON data
         env:
           DATA_DIR: ./data
-          AWS_REGION: ${{ env.AWS_REGION }}
-        run: python scripts/upload_dynamodb_items.py
+        run: |
+          cp ansible/.env utils/
+          python utils/upload_dynamo.py
 
       - name: Configurar EC2 com Ansible
         run: |

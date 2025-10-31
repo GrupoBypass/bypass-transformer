@@ -3,5 +3,5 @@ variable "aws_region" {
 }
 
 variable "bucket_name" {
-  default = "bypass-bucket"
+  default = "bypass-bucket-backup"
 }

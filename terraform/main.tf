@@ -4,7 +4,7 @@ provider "aws" {
 
 terraform {
   backend "s3" {
-    bucket = "bypass-terraform-state"
+    bucket = "bypass-terraform-backup"
     key    = "terraform/state.tfstate"
     region = "us-east-1"
   }

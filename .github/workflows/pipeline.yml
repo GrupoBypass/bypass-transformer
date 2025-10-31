@@ -52,14 +52,6 @@ jobs:
           echo "${{ secrets.EC2_SSH_KEY }}" > ansible/bypass-key.pem
           chmod 400 ansible/bypass-key.pem
 
-      - name: Obter nomes das tabelas DynamoDB do Terraform
-        id: dynamo
-        run: |
-          cd terraform
-          echo "TABLE_CIRCUITO=$(terraform output -raw aws_dynamodb_table_circuito_name)" >> $GITHUB_OUTPUT
-          echo "TABLE_SENSOR_METADATA=$(terraform output -raw aws_dynamodb_table_sensor_metadata_name)" >> $GITHUB_OUTPUT
-          echo "TABLE_PIEZO_SENSOR_DISTANCIA=$(terraform output -raw aws_dynamodb_table_piezo_sensor_distancia_name)" >> $GITHUB_OUTPUT
-
       - name: Criar .env
         run: |
           cd ansible
@@ -69,16 +61,19 @@ jobs:
           echo "S3_RAW=${{ steps.s3.outputs.raw }}" >> .env
           echo "S3_TRUSTED=${{ steps.s3.outputs.trusted }}" >> .env
           echo "S3_CLIENT=${{ steps.s3.outputs.client }}" >> .env
-          echo "DYNAMO_TABLE_CIRCUITO=${{ steps.dynamo.outputs.TABLE_CIRCUITO }}" >> .env
-          echo "DYNAMO_TABLE_SENSOR_METADATA=${{ steps.dynamo.outputs.TABLE_SENSOR_METADATA }}" >> .env
-          echo "DYNAMO_TABLE_PIEZO_SENSOR_DISTANCIA=${{ steps.dynamo.outputs.TABLE_PIEZO_SENSOR_DISTANCIA }}" >> .env
           cat .env
 
       - name: Instalar dependencias
         run: |
           sudo apt update
           sudo apt install -y python3 python3-pip sshpass
-          pip3 install ansible
+          pip3 install ansible boto3
+
+      - name: Upload DynamoDB JSON data
+        env:
+          DATA_DIR: ./data
+          AWS_REGION: ${{ env.AWS_REGION }}
+        run: python scripts/upload_dynamodb_items.py
 
       - name: Configurar EC2 com Ansible
         run: |

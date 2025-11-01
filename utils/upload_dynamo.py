@@ -38,6 +38,17 @@ def chunks(it, size):
         yield batch
 
 
+def load_json_file(path):
+    """Try UTF-8 first, then UTF-16LE if needed."""
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except UnicodeDecodeError:
+        with open(path, "r", encoding="utf-16le") as f:
+            return json.load(f)
+
+
+# Main upload loop
 for filename, table_name in FILES_TO_TABLES.items():
     path = os.path.join(data_dir, filename)
 
@@ -47,8 +58,11 @@ for filename, table_name in FILES_TO_TABLES.items():
 
     print(f"Uploading {filename} to table {table_name}...")
 
-    with open(path, "r") as f:
-        data = json.load(f)
+    try:
+        data = load_json_file(path)
+    except Exception as e:
+        print(f"Failed to load {filename}: {e}")
+        continue
 
     items = data.get("Items", [])
     if not items:
@@ -59,7 +73,10 @@ for filename, table_name in FILES_TO_TABLES.items():
         request_items = {
             table_name: [{"PutRequest": {"Item": item}} for item in batch]
         }
-        dynamodb.batch_write_item(RequestItems=request_items)
+        try:
+            dynamodb.batch_write_item(RequestItems=request_items)
+        except Exception as e:
+            print(f"Failed to upload batch to {table_name}: {e}")
+            continue
 
     print(f"Finished uploading {len(items)} items to {table_name}")
-

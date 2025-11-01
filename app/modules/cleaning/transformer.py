@@ -30,7 +30,7 @@ class Transformer:
         # 2. Arredonda colunas Double para 2 casas decimais
         for field in df.schema.fields:
             if isinstance(field.dataType, DoubleType):
-                df = df.withColumn(field.name, spark_round(col(field.name), 2))
+                df = df.withColumn(field.name, spark_round(col(field.name), 5))
 
         # 3. Converte colunas de data
         formatos = [

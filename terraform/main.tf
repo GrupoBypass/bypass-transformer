@@ -265,6 +265,14 @@ output "aws_dynamodb_table_piezo_sensor_distancia_name" {
   value = aws_dynamodb_table.piezo_sensor_distancia.name
 }
 
+output "aws_dynamodb_table_trilho_name" {
+  value = aws_dynamodb_table.trilho.name
+}
+
+output "aws_dynamodb_table_linha_name" {
+  value = aws_dynamodb_table.linha.name
+}
+
 output "raw_bucket_name" {
   value = aws_s3_bucket.raw.bucket
 }

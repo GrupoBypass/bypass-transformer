@@ -38,8 +38,12 @@ resource "aws_security_group" "ssh_sg" {
   }
 }
 
+resource "random_id" "bucket_suffix" {
+  byte_length = 4
+}
+
 resource "aws_s3_bucket" "raw" {
-  bucket = "${var.bucket_name}-raw"
+  bucket = "${var.bucket_name}-raw-${random_id.bucket_suffix.hex}"
 }
 
 resource "aws_s3_bucket_versioning" "versioning-raw" {
@@ -50,7 +54,7 @@ resource "aws_s3_bucket_versioning" "versioning-raw" {
 }
 
 resource "aws_s3_bucket" "trusted" {
-  bucket = "${var.bucket_name}-trusted"
+  bucket = "${var.bucket_name}-trusted-${random_id.bucket_suffix.hex}"
 }
 
 resource "aws_s3_bucket_versioning" "versioning-trusted" {
@@ -61,7 +65,7 @@ resource "aws_s3_bucket_versioning" "versioning-trusted" {
 }
 
 resource "aws_s3_bucket" "client" {
-  bucket = "${var.bucket_name}-client"
+  bucket = "${var.bucket_name}-client-${random_id.bucket_suffix.hex}"
 }
 
 resource "aws_s3_bucket_versioning" "versioning-client" {

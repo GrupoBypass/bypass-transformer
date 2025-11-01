@@ -61,7 +61,7 @@ class DpsTransformer(Transformer):
         dps_table = self.dynamodb.Table("DpsData")
         
         for row in df.collect():
-            sensor_value = row.get("sensor_id")
+            sensor_value = row["sensor_id"]
             sensor_id = f"S{sensor_value}"
             status = row["statusDPS"]
             tensao = float(row["picoTensao_kV"])

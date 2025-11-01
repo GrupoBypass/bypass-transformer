@@ -74,7 +74,7 @@ class TofTransformer(Transformer):
         )
         
         for row in result_df.collect():
-            sensor_value = row.get("sensor_id")
+            sensor_value = row["sensor_id"]
             sensor_id = f"S{sensor_value}"
             ocupacao = float(row["ocupacao_media"])
             timestamp = row["timestamp"]

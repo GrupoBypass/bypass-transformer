@@ -133,6 +133,40 @@ resource "aws_dynamodb_table" "piezo_sensor_distancia" {
   }
 }
 
+resource "aws_dynamodb_table" "trilho" {
+  name         = "Trilho"
+  billing_mode = "PAY_PER_REQUEST"   # equivalente ao modo on-demand
+  hash_key     = "sensor_id"
+
+  attribute {
+    name = "sensor_id"
+    type = "S"
+  }
+
+  table_class = "STANDARD"
+
+  tags = {
+    Environment = "prod"
+  }
+}
+
+resource "aws_dynamodb_table" "linha" {
+  name         = "Linha"
+  billing_mode = "PAY_PER_REQUEST"   # equivalente ao modo on-demand
+  hash_key     = "linha_id"
+
+  attribute {
+    name = "linha_id"
+    type = "S"
+  }
+
+  table_class = "STANDARD"
+
+  tags = {
+    Environment = "prod"
+  }
+}
+
 resource "aws_dynamodb_table" "tof_data" {
   name         = "TofData"
   billing_mode = "PAY_PER_REQUEST" # modo on-demand

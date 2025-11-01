@@ -23,6 +23,8 @@ FILES_TO_TABLES = {
     "circuito_dump.json": "Circuito",
     "piezo_sensor_distancia_dump.json": "PiezoSensorDistancia",
     "sensor_metadata_dump.json": "SensorMetadata",
+    "linha_dump.json": "Linha",
+    "trilho_dump.json": "Trilho"
 }
 
 data_dir = os.getenv("DATA_DIR", "./data")

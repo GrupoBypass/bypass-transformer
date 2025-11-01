@@ -193,6 +193,9 @@ class PiezoTransformer(Transformer):
         local_output_file = "/tmp/resultado.csv"   # nome fixo
         bucket_client = os.environ.get("S3_CLIENT")
 
+        linha_table = self.dynamodb.Table("Linha")
+        trilho_table = self.dynamodb.Table("Trilho")
+
         # Janela por sensor e ordenada por DATAHORA_INICIO
         window_sensor = Window.partitionBy("ID_SENSOR_ORIGEM").orderBy("DATAHORA_INICIO")
 
@@ -204,11 +207,29 @@ class PiezoTransformer(Transformer):
             "HEADWAY",
             unix_timestamp("DATAHORA_INICIO") - unix_timestamp("DATAHORA_FIM_ANTERIOR")
         )
-
+        
+        sensor_id = df.select('ID_SENSOR_ORIGEM').first()['ID_SENSOR_ORIGEM']
+        trilho = trilho_table.get_item(Key={"sensor_id": sensor_id})
+            
+        trilho_id = trilho["Item"]["trilho_id"]
+        linha_data = linha_table.get_item(Key={"linha_id": trilho["Item"]["linha_id"]})
+        
+        linha = linha_data["Item"]["linha_id"] + ' - ' + linha_data["Item"]["cor"]
+        
         # Limpeza de colunas auxiliares
         df = df.drop("DATAHORA_FIM_ANTERIOR", "ID_TREM_ATRASO")
         
-        
+        # Renomeando colunas para o client
+        df = df.withColumnRenamed("ID_TREM", "Trem ID") \
+               .withColumnRenamed("ID_SENSOR_ORIGEM", "Sensor ID - Origem") \
+               .withColumnRenamed("ID_SENSOR_DESTINO", "Sensor ID - Destino") \
+               .withColumnRenamed("PRESSAO", "Pressão (kPa)") \
+               .withColumnRenamed("DATAHORA_INICIO", "Data hora - Inicio") \
+               .withColumnRenamed("DATAHORA_FIM", "Data hora - Fim") \
+               .withColumnRenamed("VELOCIDADE", "Velocidade (km/h)") \
+               .withColumn("Trilho", lit(trilho_id)) \
+               .withColumn("Linha", lit(linha)) \
+               .withColumnRenamed("HEADWAY", "Headway(s)")
 
         df.coalesce(1).write.mode("overwrite").option("header", True).csv(local_output_dir)
 

@@ -246,3 +246,15 @@ output "client_bucket_name" {
 output "ec2_public_ip" {
   value = aws_instance.transformer.public_ip
 }
+
+output "raw_bucket_arn" {
+  value = aws_s3_bucket.raw.arn
+}
+
+output "trusted_bucket_arn" {
+  value = aws_s3_bucket.trusted.arn
+}
+
+output "client_bucket_arn" {
+  value = aws_s3_bucket.client.arn
+}

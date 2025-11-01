@@ -3,6 +3,7 @@ import boto3
 import os
 from itertools import islice
 from dotenv import load_dotenv
+import codecs
 
 load_dotenv()
 

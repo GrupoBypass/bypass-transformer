@@ -1,6 +1,7 @@
 import json
 import boto3
 import os
+import codecs
 from itertools import islice
 from dotenv import load_dotenv
 import codecs

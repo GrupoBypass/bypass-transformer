@@ -304,3 +304,7 @@ output "trusted_bucket_arn" {
 output "client_bucket_arn" {
   value = aws_s3_bucket.client.arn
 }
+
+output "ssh_sg_id" {
+  value = aws_security_group.ssh_sg.id
+}

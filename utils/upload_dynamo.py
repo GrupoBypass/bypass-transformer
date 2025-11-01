@@ -43,7 +43,7 @@ def chunks(it, size):
 def load_json_file(path):
     """Try UTF-8 first, then UTF-16LE if needed."""
     try:
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, "r", encoding="utf-8-sig") as f:
             return json.load(f)
     except UnicodeDecodeError:
         with open(path, "r", encoding="utf-16le") as f:

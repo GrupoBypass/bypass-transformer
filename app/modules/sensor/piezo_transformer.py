@@ -209,7 +209,7 @@ class PiezoTransformer(Transformer):
         )
         
         sensor_id = df.first().asDict().get('ID_SENSOR_ORIGEM')
-        trilho = trilho_table.get_item(Key={"sensor_id": sensor_id})
+        trilho = trilho_table.get_item(Key={"sensor_id": f"S{sensor_id}"})
         
         if "Item" not in trilho:
             raise Exception(f"Item não encontrado para sensor_id: {sensor_id}")

@@ -208,8 +208,11 @@ class PiezoTransformer(Transformer):
             unix_timestamp("DATAHORA_INICIO") - unix_timestamp("DATAHORA_FIM_ANTERIOR")
         )
         
-        sensor_id = df.select('ID_SENSOR_ORIGEM').first()['ID_SENSOR_ORIGEM']
+        sensor_id = df.first().asDict().get('ID_SENSOR_ORIGEM')
         trilho = trilho_table.get_item(Key={"sensor_id": sensor_id})
+        
+        if "Item" not in trilho:
+            raise Exception(f"Item não encontrado para sensor_id: {sensor_id}")
             
         trilho_id = trilho["Item"]["trilho_id"]
         linha_id = trilho["Item"]["linha_id"]

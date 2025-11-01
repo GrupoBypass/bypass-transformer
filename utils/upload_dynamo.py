@@ -41,13 +41,12 @@ def chunks(it, size):
 
 
 def load_json_file(path):
-    """Try UTF-8 first, then UTF-16LE if needed."""
     try:
-        with open(path, "r", encoding="utf-8-sig") as f:
-            return json.load(f)
+        with codecs.open(path, 'r', 'utf-8-sig') as json_file:  
+            return json.load(json_file)
     except UnicodeDecodeError:
-        with open(path, "r", encoding="utf-16le") as f:
-            return json.load(f)
+        with codecs.open(path, 'r', 'utf-16le') as json_file:  
+            return json.load(json_file)
 
 
 # Main upload loop

@@ -212,7 +212,9 @@ class PiezoTransformer(Transformer):
         trilho = trilho_table.get_item(Key={"sensor_id": sensor_id})
             
         trilho_id = trilho["Item"]["trilho_id"]
-        linha_data = linha_table.get_item(Key={"linha_id": trilho["Item"]["linha_id"]})
+        linha_id = trilho["Item"]["linha_id"]
+        
+        linha_data = linha_table.get_item(Key={"linha_id": linha_id})
         
         linha = linha_data["Item"]["linha_id"] + ' - ' + linha_data["Item"]["cor"]
         

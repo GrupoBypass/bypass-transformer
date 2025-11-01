@@ -59,7 +59,7 @@ class DHT11Transformer(Transformer):
         dht11_table = self.dynamodb.Table("DHT11Data")
         
         for row in df.collect():
-            sensor_value = row.get("sensor_id")
+            sensor_value = row["sensor_id"]
             sensor_id = f"S{sensor_value}"
             temperatura = float(row["temperature_c"])
             umidade = float(row["humidity_percent"])

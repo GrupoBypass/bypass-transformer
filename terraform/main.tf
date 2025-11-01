@@ -257,18 +257,6 @@ resource "aws_dynamodb_table" "dht11_data" {
   }
 }
 
-data "aws_subnet_ids" "default" {
-  vpc_id = data.aws_vpc.default.id
-}
-
-data "aws_vpc" "default" {
-  default = true
-}
-
-output "default_subnet_id" {
-  value = data.aws_subnet_ids.default.ids[0]
-}
-
 output "aws_dynamodb_table_circuito_name" {
   value = aws_dynamodb_table.circuito.name
 }

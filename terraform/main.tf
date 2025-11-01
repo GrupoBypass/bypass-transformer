@@ -306,5 +306,5 @@ output "client_bucket_arn" {
 }
 
 output "ssh_sg_id" {
-  value = ssh_sg.id
+  value = aws_security_group.ssh_sg.id
 }

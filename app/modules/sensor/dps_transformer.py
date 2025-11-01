@@ -87,9 +87,8 @@ class DpsTransformer(Transformer):
             print(f"✅ Inserido DpsData: {sensor_id} com status {status}")
 
     def tratar_dataframe_client(self, df: DataFrame, s3, key):
-        dynamodb = boto3.resource("dynamodb", region_name="us-east-1")
-        metadata_table = dynamodb.Table("SensorMetadata")
-        circuito_table = dynamodb.Table("Circuito")
+        metadata_table = self.dynamodb.Table("SensorMetadata")
+        circuito_table = self.dynamodb.Table("Circuito")
         local_output_dir = "/tmp/output"
         local_output_file = "/tmp/resultado.csv"   # nome fixo
         bucket_client = os.environ.get("S3_CLIENT")

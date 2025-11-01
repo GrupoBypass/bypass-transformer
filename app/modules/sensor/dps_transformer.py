@@ -124,7 +124,7 @@ class DpsTransformer(Transformer):
             .withColumn("PRIORIDADE", lit(circuito_prioridade))
             .withColumnRenamed("statusDPS", "STATUS")
             .withColumnRenamed("dataHora", "DATAHORA")
-            .select("ID_CIRCUITO", "MODELO", "CATEGORIA", "PRIORIDADE", "STATUS", "NUM_CARRO", "NUM_TREM", "DATAHORA")
+            .select("ID_CIRCUITO", "MODELO", "CATEGORIA", "PRIORIDADE", "STATUS", "NUM_CARRO", "NUM_TREM", "DATAHORA", "picoTensao_kV", "correnteSurto_kA")
         )
         
         df.coalesce(1).write.mode("overwrite").option("header", True).csv(local_output_dir)

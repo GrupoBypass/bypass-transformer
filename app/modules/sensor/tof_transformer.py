@@ -90,7 +90,7 @@ class TofTransformer(Transformer):
                 col("trem_id"),
                 col("carro_id"),
                 col("timestamp").alias("datahora"),
-                col("ocupacao")
+                col("ocupacao_media")
             )
         )
         

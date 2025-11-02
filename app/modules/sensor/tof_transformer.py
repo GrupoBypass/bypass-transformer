@@ -104,8 +104,8 @@ class TofTransformer(Transformer):
                 print(f"Arquivo final gerado: {local_output_file}")
 
         # Envia arquivo para o S3
-        s3.upload_file(local_output_file, bucket_client, f'tof/{output_file_name}')
-        print(f"Arquivo enviado para: s3://{bucket_client}/tof/{output_file_name}")
+        s3.upload_file(local_output_file, bucket_client, f'ocupacao/{output_file_name}')
+        print(f"Arquivo enviado para: s3://{bucket_client}/ocupacao/{output_file_name}")
         
         # Insere no dynamodb
         for row in final_df.collect():

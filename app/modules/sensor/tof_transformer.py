@@ -64,7 +64,7 @@ class TofTransformer(Transformer):
         local_output_dir = "/tmp/output"
         local_output_file = "/tmp/resultado.csv"   # nome fixo
         bucket_client = os.environ.get("S3_CLIENT")
-        file_name = 'ocupacao.csv'
+        output_file_name = 'ocupacao.csv'
         
         metadata = metadata_table.scan()["Items"]  # Busca tudo de uma vez
         metadata_df = spark.createDataFrame(metadata)
@@ -104,8 +104,8 @@ class TofTransformer(Transformer):
                 print(f"Arquivo final gerado: {local_output_file}")
 
         # Envia arquivo para o S3
-        s3.upload_file(local_output_file, bucket_client, file_name)
-        print(f"Arquivo enviado para: s3://{bucket_client}/{file_name}")
+        s3.upload_file(local_output_file, bucket_client, output_file_name)
+        print(f"Arquivo enviado para: s3://{bucket_client}/{output_file_name}")
         
         # Insere no dynamodb
         for row in final_df.collect():

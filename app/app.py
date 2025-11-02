@@ -14,6 +14,7 @@ from modules.sensor.dht11_transformer import DHT11Transformer
 from modules.sensor.omron_transformer import OmronTransformer
 from modules.sensor.dps_transformer import DpsTransformer
 from modules.sensor.piezo_transformer import PiezoTransformer
+from modules.sensor.optical_transformer import OpticalTransformer
 from dotenv import load_dotenv
 
 sys.stdout.reconfigure(line_buffering=True)
@@ -159,6 +160,27 @@ def process_omron():
 
         transformer = OmronTransformer()
         transformer.main(LOCAL_INPUT_OMRON, s3, key)
+        
+        return jsonify({"status": "ok", "message": "Processamento concluído"}), 200
+    except Exception as e:
+        logger.exception(f"Erro inesperado: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route("/process-optical", methods=["POST"])
+def process_optical():
+    try:
+        data = request.json or {}
+        key = data.get("key")
+        
+        logger.info("Iniciando download do S3...")
+        s3.download_file(BUCKET_RAW, key, LOCAL_INPUT_OPTICAL)
+        logger.info(f"Arquivo baixado localmente: {LOCAL_INPUT_OPTICAL}")
+        
+        if not key or "optical" not in key:
+            return jsonify({"status": "error", "message": "Arquivo inválido"}), 400
+
+        transformer = OpticalTransformer()
+        transformer.main(LOCAL_INPUT_OPTICAL, s3, key)
         
         return jsonify({"status": "ok", "message": "Processamento concluído"}), 200
     except Exception as e:

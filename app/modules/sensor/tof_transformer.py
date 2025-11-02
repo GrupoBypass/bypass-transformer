@@ -115,7 +115,7 @@ class TofTransformer(Transformer):
                     "trem_id": row["trem_id"],
                     "carro_id": row["carro_id"],
                     "datahora": row["datahora"],
-                    "ocupacao": Decimal(str(row["ocupacao"]))
+                    "ocupacao": Decimal(str(row["ocupacao_media"]))
                 }
             ) 
 

@@ -118,5 +118,5 @@ class DHT11Transformer(Transformer):
                 print(f"Arquivo final gerado: {local_output_file}")
 
         # Envia arquivo para o S3
-        s3.upload_file(local_output_file, bucket_client, key)
-        print(f"Arquivo enviado para: s3://{bucket_client}/{key}")
+        s3.upload_file(local_output_file, bucket_client, f'dht11/{key}')
+        print(f"Arquivo enviado para: s3://{bucket_client}/dht11/{key}")

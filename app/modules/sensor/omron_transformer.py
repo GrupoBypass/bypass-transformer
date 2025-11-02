@@ -59,5 +59,5 @@ class OmronTransformer(Transformer):
                 print(f"Arquivo final gerado: {local_output_file}")
 
         # Envia arquivo para o S3
-        s3.upload_file(local_output_file, bucket_client, key)
-        print(f"Arquivo enviado para: s3://{bucket_client}/{key}")
+        s3.upload_file(local_output_file, bucket_client, f'omron/{key}')
+        print(f"Arquivo enviado para: s3://{bucket_client}/omron/{key}")

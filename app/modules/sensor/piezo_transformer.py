@@ -53,8 +53,8 @@ class PiezoTransformer(Transformer):
                 print(f"Arquivo final gerado: {local_output_file}")
 
         # Envia arquivo para o S3
-        s3.upload_file(local_output_file, bucket_trusted, key)
-        print(f"Arquivo enviado para: s3://{bucket_trusted}/{key}")
+        s3.upload_file(local_output_file, bucket_trusted, f'piezo/{key}')
+        print(f"Arquivo enviado para: s3://{bucket_trusted}/piezo/{key}")
         
         df = self.tratar_dataframe_registry(df, spark)
         

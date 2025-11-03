@@ -1,22 +1,33 @@
 from pyspark.sql import DataFrame
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import floor, col, mean, lit, when, count, sum as spark_sum
+from pyspark.sql.functions import floor, col, mean, lit, when, count, sum as spark_sum, concat
 from pyspark.sql.types import IntegerType
 from modules.cleaning.transformer import Transformer
 import os
 import boto3
 from decimal import Decimal
+from dotenv import load_dotenv
 
 class TofTransformer(Transformer):
 
-    AWS_ACESS_KEY_ID = os.environ.get("$AWS_ACCESS_KEY_ID")
-    AWS_SECRET_ACESS_KEY = os.environ.get("$AWS_SECRET_ACCESS_KEY")
-    AWS_SESSION_TOKEN = os.environ.get("$AWS_SESSION_TOKEN")
+    def __init__(self):
+        load_dotenv()
+        AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
+        AWS_SECRET_ACCESS_KEY_ID = os.environ.get("AWS_SECRET_ACCESS_KEY_ID")
+        AWS_SESSION_TOKEN = os.environ.get("AWS_SESSION_TOKEN")
+        
+        self.dynamodb = boto3.resource(
+                "dynamodb",
+                region_name="us-east-1",
+                aws_access_key_id=AWS_ACCESS_KEY_ID,
+                aws_secret_access_key=AWS_SECRET_ACCESS_KEY_ID,
+                aws_session_token=AWS_SESSION_TOKEN
+        )
     
     def main(self, local_input, s3, key):
         local_output_dir = "/tmp/output"
         local_output_file = "/tmp/tof_trusted.csv"   # nome fixo
-        bucket_trusted = "bucket-bypass-trusted-teste"
+        bucket_trusted = os.environ.get("S3_TRUSTED")
         
         print("Iniciando Spark...")
         spark = SparkSession.builder.appName("TofSpark").getOrCreate()
@@ -39,24 +50,25 @@ class TofTransformer(Transformer):
         s3.upload_file(local_output_file, bucket_trusted, key)
         print(f"Arquivo enviado para: s3://{bucket_trusted}/{key}")
         
-        self.tratar_dataframe_registry(df)
+        self.tratar_dataframe_registry(df, s3, spark)
         
         self.tratar_dataframe_client(df, s3, key)
         
         
     
-    def tratar_dataframe_registry(self, df: DataFrame):
+    def tratar_dataframe_registry(self, df: DataFrame, s3, spark):
 
-        dynamodb = boto3.resource(
-            "dynamodb",
-            region_name="us-east-1",
-            aws_access_key_id="YOUR_ACCESS_KEY",
-            aws_secret_access_key="YOUR_SECRET_KEY",
-            aws_session_token="YOUR_SESSION_TOKEN"  # optional, only if using temporary credentials (e.g., STS)
-        )
-        dynamodb = boto3.resource("dynamodb", region_name="us-east-1")
-        metadata_table = dynamodb.Table("SensorMetadata")
-        tof_table = dynamodb.Table("TofData")
+        # dynamodb = boto3.resource("dynamodb", region_name="us-east-1")
+        metadata_table = self.dynamodb.Table("SensorMetadata")
+        tof_table = self.dynamodb.Table("TofData")
+        local_output_dir = "/tmp/output"
+        local_output_file = "/tmp/resultado.csv"   # nome fixo
+        bucket_client = os.environ.get("S3_CLIENT")
+        output_file_name = 'ocupacao.csv'
+        
+        metadata = metadata_table.scan()["Items"]  # Busca tudo de uma vez
+        metadata_df = spark.createDataFrame(metadata)
+        metadata_df = metadata_df.withColumnRenamed("sensor_id", "sensor_id_str")
         
         result_df = (df
             .withColumn("is_occupied", when(col("dist_mm") < 1750, 1).otherwise(0))
@@ -68,38 +80,50 @@ class TofTransformer(Transformer):
             )
         )
         
-        for row in result_df.collect():
-            sensor_id = f"S{row["sensor_id"]}"
-            ocupacao = float(row["ocupacao_media"])
-            timestamp = row["timestamp"]
+        result_df = result_df.withColumn("sensor_id_str", concat(lit("S"), col("sensor_id")))
+        
+        final_df = (
+            result_df
+            .join(metadata_df, "sensor_id_str", "left")
+            .select(
+                col("sensor_id_str").alias("sensor_id"),
+                col("trem_id"),
+                col("carro_id"),
+                col("timestamp").alias("datahora"),
+                col("ocupacao_media")
+            )
+        )
+        
+        final_df.coalesce(1).write.mode("overwrite").option("header", True).csv(local_output_dir)
+        
+        # Renomeia o arquivo final para resultado.csv
+        for file_name in os.listdir(local_output_dir):
+            if file_name.endswith(".csv"):
+                src_path = os.path.join(local_output_dir, file_name)
+                os.rename(src_path, local_output_file)
+                print(f"Arquivo final gerado: {local_output_file}")
 
-            # Lookup sensor no DynamoDB
-            meta = metadata_table.get_item(Key={"sensor_id": sensor_id})
-            if "Item" not in meta:
-                print(f"⚠️ Sensor {sensor_id} não encontrado em SensorMetadata")
-                continue
-
-            trem_id = meta["Item"]["trem_id"]
-            carro_id = meta["Item"]["carro_id"]
-
-            # Insere no DynamoDB (tabela TofData)
+        # Envia arquivo para o S3
+        s3.upload_file(local_output_file, bucket_client, f'ocupacao/{output_file_name}')
+        print(f"Arquivo enviado para: s3://{bucket_client}/ocupacao/{output_file_name}")
+        
+        # Insere no dynamodb
+        for row in final_df.collect():
             tof_table.put_item(
                 Item={
-                    "trem_id": trem_id,
-                    "datahora": timestamp,
-                    "carro_id": carro_id,
-                    "sensor_id": sensor_id,
-                    "ocupacao": Decimal(str(ocupacao))
+                    "sensor_id": row["sensor_id"],
+                    "trem_id": row["trem_id"],
+                    "carro_id": row["carro_id"],
+                    "datahora": row["datahora"],
+                    "ocupacao": Decimal(str(row["ocupacao_media"]))
                 }
-            )
-            print(f"✅ Inserido ToFData: {sensor_id} → {trem_id}/{carro_id} com ocupação {ocupacao:.2f}%")
+            ) 
 
     def tratar_dataframe_client(self, df: DataFrame, s3, key):
-        dynamodb = boto3.resource("dynamodb", region_name="us-east-1")
-        metadata_table = dynamodb.Table("SensorMetadata")
+        metadata_table = self.dynamodb.Table("SensorMetadata")
         local_output_dir = "/tmp/output"
         local_output_file = "/tmp/resultado.csv"   # nome fixo
-        bucket_client = "bucket-bypass-client-teste"
+        bucket_client = os.environ.get("S3_CLIENT")
 
         df = (df
               .withColumn("y_block", floor(col("y") / 4).cast(IntegerType()))
@@ -125,7 +149,11 @@ class TofTransformer(Transformer):
         carro_id = meta["Item"]["carro_id"]
 
         # Em cada linha adiciona trem_id e carro_id
-        df = df.withColumn("trem_id", lit(trem_id)).withColumn("carro_id", lit(carro_id))
+        df = (df
+              .withColumn("trem_id", lit(trem_id))
+              .withColumn("carro_id", lit(carro_id))
+              .select("y_block", "x_block", "dist", "timestamp", "trem_id", "carro_id")
+        )
         
         df.coalesce(1).write.mode("overwrite").option("header", True).csv(local_output_dir)
 
@@ -137,5 +165,5 @@ class TofTransformer(Transformer):
                 print(f"Arquivo final gerado: {local_output_file}")
 
         # Envia arquivo para o S3
-        s3.upload_file(local_output_file, bucket_client, key)
-        print(f"Arquivo enviado para: s3://{bucket_client}/{key}")
+        s3.upload_file(local_output_file, bucket_client, f'tof/{key}')
+        print(f"Arquivo enviado para: s3://{bucket_client}/tof/{key}")

@@ -1,0 +1,24 @@
+﻿{
+    "Items": [
+        {
+            "prioridade": {
+                "N": "1"
+            },
+            "categoria": {
+                "S": "teste"
+            },
+            "sensor_id": {
+                "S": "S5"
+            },
+            "modelo": {
+                "S": "teste"
+            },
+            "circuito_id": {
+                "S": "CC1"
+            }
+        }
+    ],
+    "Count": 1,
+    "ScannedCount": 1,
+    "ConsumedCapacity": null
+}

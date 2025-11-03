@@ -7,5 +7,5 @@ variable "state_bucket_name" {
 }
 
 variable "bucket_name" {
-  default = "bypass-bucket"
+  default = "bypass-bucket-backup"
 }

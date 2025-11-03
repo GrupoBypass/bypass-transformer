@@ -1,0 +1,18 @@
+﻿{
+    "Items": [
+        {
+            "sensor_id_2": {
+                "S": "S9"
+            },
+            "sensor_id": {
+                "S": "S6"
+            },
+            "distancia": {
+                "N": "500"
+            }
+        }
+    ],
+    "Count": 1,
+    "ScannedCount": 1,
+    "ConsumedCapacity": null
+}

@@ -1,0 +1,71 @@
+﻿{
+    "Items": [
+        {
+            "linha_id": {
+                "S": "2"
+            },
+            "cor": {
+                "S": "Verde"
+            }
+        },
+        {
+            "linha_id": {
+                "S": "1"
+            },
+            "cor": {
+                "S": "Azul"
+            }
+        },
+        {
+            "linha_id": {
+                "S": "5"
+            },
+            "cor": {
+                "S": "Lilßs"
+            }
+        },
+        {
+            "linha_id": {
+                "S": "4"
+            },
+            "cor": {
+                "S": "Amarela"
+            }
+        },
+        {
+            "linha_id": {
+                "S": "7"
+            },
+            "cor": {
+                "S": "Rubi"
+            }
+        },
+        {
+            "linha_id": {
+                "S": "11"
+            },
+            "cor": {
+                "S": "Coral"
+            }
+        },
+        {
+            "linha_id": {
+                "S": "3"
+            },
+            "cor": {
+                "S": "Vermelha"
+            }
+        },
+        {
+            "linha_id": {
+                "S": "10"
+            },
+            "cor": {
+                "S": "Turquesa"
+            }
+        }
+    ],
+    "Count": 8,
+    "ScannedCount": 8,
+    "ConsumedCapacity": null
+}

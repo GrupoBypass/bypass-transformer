@@ -22,6 +22,14 @@ resource "aws_security_group" "ssh_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  ingress {
+    description = "Server"
+    from_port   = 5000
+    to_port     = 5000
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -30,8 +38,12 @@ resource "aws_security_group" "ssh_sg" {
   }
 }
 
+resource "random_id" "bucket_suffix" {
+  byte_length = 4
+}
+
 resource "aws_s3_bucket" "raw" {
-  bucket = "${var.bucket_name}-raw"
+  bucket = "${var.bucket_name}-raw-${random_id.bucket_suffix.hex}"
 }
 
 resource "aws_s3_bucket_versioning" "versioning-raw" {
@@ -42,7 +54,7 @@ resource "aws_s3_bucket_versioning" "versioning-raw" {
 }
 
 resource "aws_s3_bucket" "trusted" {
-  bucket = "${var.bucket_name}-trusted"
+  bucket = "${var.bucket_name}-trusted-${random_id.bucket_suffix.hex}"
 }
 
 resource "aws_s3_bucket_versioning" "versioning-trusted" {
@@ -53,7 +65,7 @@ resource "aws_s3_bucket_versioning" "versioning-trusted" {
 }
 
 resource "aws_s3_bucket" "client" {
-  bucket = "${var.bucket_name}-client"
+  bucket = "${var.bucket_name}-client-${random_id.bucket_suffix.hex}"
 }
 
 resource "aws_s3_bucket_versioning" "versioning-client" {
@@ -74,6 +86,197 @@ resource "aws_instance" "transformer" {
   }
 }
 
+resource "aws_dynamodb_table" "circuito" {
+  name         = "Circuito"
+  billing_mode = "PAY_PER_REQUEST"   # equivalente ao modo on-demand
+  hash_key     = "sensor_id"
+
+  attribute {
+    name = "sensor_id"
+    type = "S"
+  }
+
+  table_class = "STANDARD"
+
+  tags = {
+    Environment = "prod"
+  }
+}
+
+resource "aws_dynamodb_table" "sensor_metadata" {
+  name         = "SensorMetadata"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "sensor_id"
+
+  attribute {
+    name = "sensor_id"
+    type = "S"
+  }
+
+  table_class = "STANDARD"
+
+  tags = {
+    Environment = "prod"
+  }
+}
+
+resource "aws_dynamodb_table" "piezo_sensor_distancia" {
+  name         = "PiezoSensorDistancia"
+  billing_mode = "PAY_PER_REQUEST"   # equivalente ao modo on-demand
+  hash_key     = "sensor_id"
+
+  attribute {
+    name = "sensor_id"
+    type = "S"
+  }
+
+  table_class = "STANDARD"
+
+  tags = {
+    Environment = "prod"
+  }
+}
+
+resource "aws_dynamodb_table" "trilho" {
+  name         = "Trilho"
+  billing_mode = "PAY_PER_REQUEST"   # equivalente ao modo on-demand
+  hash_key     = "sensor_id"
+
+  attribute {
+    name = "sensor_id"
+    type = "S"
+  }
+
+  table_class = "STANDARD"
+
+  tags = {
+    Environment = "prod"
+  }
+}
+
+resource "aws_dynamodb_table" "linha" {
+  name         = "Linha"
+  billing_mode = "PAY_PER_REQUEST"   # equivalente ao modo on-demand
+  hash_key     = "linha_id"
+
+  attribute {
+    name = "linha_id"
+    type = "S"
+  }
+
+  table_class = "STANDARD"
+
+  tags = {
+    Environment = "prod"
+  }
+}
+
+resource "aws_dynamodb_table" "tof_data" {
+  name         = "TofData"
+  billing_mode = "PAY_PER_REQUEST" # modo on-demand
+  hash_key     = "sensor_id"
+  range_key    = "datahora"
+
+  attribute {
+    name = "sensor_id"
+    type = "S"
+  }
+
+  attribute {
+    name = "datahora"
+    type = "S"
+  }
+
+  table_class = "STANDARD"
+
+  tags = {
+    Environment = "prod"
+  }
+}
+
+resource "aws_dynamodb_table" "piezo_data" {
+  name         = "PiezoData"
+  billing_mode = "PAY_PER_REQUEST" # modo on-demand
+  hash_key     = "trem_id"
+
+  attribute {
+    name = "trem_id"
+    type = "S"
+  }
+
+  table_class = "STANDARD"
+
+  tags = {
+    Environment = "prod"
+  }
+}
+
+resource "aws_dynamodb_table" "dps_data" {
+  name         = "DpsData"
+  billing_mode = "PAY_PER_REQUEST" # modo on-demand
+  hash_key     = "sensor_id"
+  range_key    = "datahora"
+
+  attribute {
+    name = "sensor_id"
+    type = "S"
+  }
+
+  attribute {
+    name = "datahora"
+    type = "S"
+  }
+
+  table_class = "STANDARD"
+
+  tags = {
+    Environment = "prod"
+  }
+}
+
+resource "aws_dynamodb_table" "dht11_data" {
+  name         = "DHT11Data"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "sensor_id"
+  range_key    = "datahora"
+
+  attribute {
+    name = "sensor_id"
+    type = "S"
+  }
+
+  attribute {
+    name = "datahora"
+    type = "S"
+  }
+
+  table_class = "STANDARD"
+
+  tags = {
+    Environment = "prod"
+  }
+}
+
+output "aws_dynamodb_table_circuito_name" {
+  value = aws_dynamodb_table.circuito.name
+}
+
+output "aws_dynamodb_table_sensor_metadata_name" {
+  value = aws_dynamodb_table.sensor_metadata.name
+}
+
+output "aws_dynamodb_table_piezo_sensor_distancia_name" {
+  value = aws_dynamodb_table.piezo_sensor_distancia.name
+}
+
+output "aws_dynamodb_table_trilho_name" {
+  value = aws_dynamodb_table.trilho.name
+}
+
+output "aws_dynamodb_table_linha_name" {
+  value = aws_dynamodb_table.linha.name
+}
+
 output "raw_bucket_name" {
   value = aws_s3_bucket.raw.bucket
 }
@@ -90,3 +293,18 @@ output "ec2_public_ip" {
   value = aws_instance.transformer.public_ip
 }
 
+output "raw_bucket_arn" {
+  value = aws_s3_bucket.raw.arn
+}
+
+output "trusted_bucket_arn" {
+  value = aws_s3_bucket.trusted.arn
+}
+
+output "client_bucket_arn" {
+  value = aws_s3_bucket.client.arn
+}
+
+output "ssh_sg_id" {
+  value = aws_security_group.ssh_sg.id
+}

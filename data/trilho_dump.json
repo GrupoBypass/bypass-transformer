@@ -1,0 +1,18 @@
+﻿{
+    "Items": [
+        {
+            "linha_id": {
+                "S": "7"
+            },
+            "sensor_id": {
+                "S": "S6"
+            },
+            "trilho_id": {
+                "S": "R7-1"
+            }
+        }
+    ],
+    "Count": 1,
+    "ScannedCount": 1,
+    "ConsumedCapacity": null
+}

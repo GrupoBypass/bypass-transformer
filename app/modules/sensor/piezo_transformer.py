@@ -8,17 +8,32 @@ from pyspark.sql.functions import (
     regexp_replace
 )
 from pyspark.sql.window import Window
-from transformer import Transformer
+from modules.cleaning.transformer import Transformer
 import os
 import boto3
 from decimal import Decimal
+from dotenv import load_dotenv
 
 class PiezoTransformer(Transformer):
+    
+    def __init__(self):
+        load_dotenv()
+        AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
+        AWS_SECRET_ACCESS_KEY_ID = os.environ.get("AWS_SECRET_ACCESS_KEY_ID")
+        AWS_SESSION_TOKEN = os.environ.get("AWS_SESSION_TOKEN")
+        
+        self.dynamodb = boto3.resource(
+                "dynamodb",
+                region_name="us-east-1",
+                aws_access_key_id=AWS_ACCESS_KEY_ID,
+                aws_secret_access_key=AWS_SECRET_ACCESS_KEY_ID,
+                aws_session_token=AWS_SESSION_TOKEN
+        )
     
     def main(self, local_input, s3, key):
         local_output_dir = "/tmp/output"
         local_output_file = "/tmp/resultado.csv"   # nome fixo
-        bucket_trusted = "bucket-bypass-trusted-teste"
+        bucket_trusted = os.environ.get("S3_TRUSTED")
         
         print("Iniciando Spark...")
         spark = SparkSession.builder.appName("PiezoSpark").getOrCreate()
@@ -38,8 +53,8 @@ class PiezoTransformer(Transformer):
                 print(f"Arquivo final gerado: {local_output_file}")
 
         # Envia arquivo para o S3
-        s3.upload_file(local_output_file, bucket_trusted, key)
-        print(f"Arquivo enviado para: s3://{bucket_trusted}/{key}")
+        s3.upload_file(local_output_file, bucket_trusted, f'piezo/{key}')
+        print(f"Arquivo enviado para: s3://{bucket_trusted}/piezo/{key}")
         
         df = self.tratar_dataframe_registry(df, spark)
         
@@ -60,9 +75,9 @@ class PiezoTransformer(Transformer):
         """
         Handler para o DataFrame de registro, aplicando transformações específicas.
         """
-        dynamodb = boto3.resource("dynamodb", region_name="us-east-1")
-        piezo_table = dynamodb.Table("PiezoData")
-        piezo_sensor_distancia = dynamodb.Table("PiezoSensorDistancia")
+        
+        piezo_table = self.dynamodb.Table("PiezoData")
+        piezo_sensor_distancia = self.dynamodb.Table("PiezoSensorDistancia")
 
         # 1. Definir janela para particionar por trem_id e ordenar por timestamp
         window_spec = Window.partitionBy("trem_id").orderBy("dataHora")
@@ -143,9 +158,12 @@ class PiezoTransformer(Transformer):
         
         # Insere no DynamoDB (tabela TofData)
         for row in df_registry.collect():
-            sensor_id_origem = f"S{row["ID_SENSOR_ORIGEM"]}"
-            sensor_id_destino = f"S{row["ID_SENSOR_DESTINO"]}"
-            trem_id = f"T{row["ID_TREM"]}"
+            sensor_origem_value = row["ID_SENSOR_ORIGEM"]
+            sensor_id_origem = f"S{sensor_origem_value}"
+            sensor_destino_value = row["ID_SENSOR_DESTINO"]
+            sensor_id_destino = f"S{sensor_destino_value}"
+            trem_value = row["ID_TREM"]
+            trem_id = f"T{trem_value}"
             pressao = float(row["PRESSAO"])
             velocidade = float(row["VELOCIDADE"])
             datahora_inicio = row["DATAHORA_INICIO"]
@@ -173,7 +191,10 @@ class PiezoTransformer(Transformer):
         """
         local_output_dir = "/tmp/output"
         local_output_file = "/tmp/resultado.csv"   # nome fixo
-        bucket_client = "bucket-bypass-client-teste"
+        bucket_client = os.environ.get("S3_CLIENT")
+
+        linha_table = self.dynamodb.Table("Linha")
+        trilho_table = self.dynamodb.Table("Trilho")
 
         # Janela por sensor e ordenada por DATAHORA_INICIO
         window_sensor = Window.partitionBy("ID_SENSOR_ORIGEM").orderBy("DATAHORA_INICIO")
@@ -186,11 +207,34 @@ class PiezoTransformer(Transformer):
             "HEADWAY",
             unix_timestamp("DATAHORA_INICIO") - unix_timestamp("DATAHORA_FIM_ANTERIOR")
         )
-
+        
+        sensor_id = df.first().asDict().get('ID_SENSOR_ORIGEM')
+        trilho = trilho_table.get_item(Key={"sensor_id": f"S{sensor_id}"})
+        
+        if "Item" not in trilho:
+            raise Exception(f"Item não encontrado para sensor_id: {sensor_id}")
+            
+        trilho_id = trilho["Item"]["trilho_id"]
+        linha_id = trilho["Item"]["linha_id"]
+        
+        linha_data = linha_table.get_item(Key={"linha_id": linha_id})
+        
+        linha = linha_data["Item"]["linha_id"] + ' - ' + linha_data["Item"]["cor"]
+        
         # Limpeza de colunas auxiliares
         df = df.drop("DATAHORA_FIM_ANTERIOR", "ID_TREM_ATRASO")
         
-        
+        # Renomeando colunas para o client
+        df = df.withColumnRenamed("ID_TREM", "Trem ID") \
+               .withColumnRenamed("ID_SENSOR_ORIGEM", "Sensor ID - Origem") \
+               .withColumnRenamed("ID_SENSOR_DESTINO", "Sensor ID - Destino") \
+               .withColumnRenamed("PRESSAO", "Pressão (kPa)") \
+               .withColumnRenamed("DATAHORA_INICIO", "Data hora - Inicio") \
+               .withColumnRenamed("DATAHORA_FIM", "Data hora - Fim") \
+               .withColumnRenamed("VELOCIDADE", "Velocidade (km/h)") \
+               .withColumn("Trilho", lit(trilho_id)) \
+               .withColumn("Linha", lit(linha)) \
+               .withColumnRenamed("HEADWAY", "Headway(s)")
 
         df.coalesce(1).write.mode("overwrite").option("header", True).csv(local_output_dir)
 

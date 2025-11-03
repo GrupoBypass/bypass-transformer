@@ -3,7 +3,7 @@ provider "aws" {
 }
 
 terraform {
-  backend "local" {}
+  backend "s3" {}
 }
 
 resource "aws_security_group" "ssh_sg" {

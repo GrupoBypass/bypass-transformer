@@ -33,7 +33,7 @@ jobs:
       - name: Terraform Apply
         run: |
           cd terraform
-          terraform init
+          terraform init -backend-config=backend.hcl
           terraform apply -auto-approve
 
       - name: Obter IP da EC2 do Terraform

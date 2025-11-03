@@ -1,4 +1,0 @@
-
-          echo "bucket = ${{ secrets.STATE_BUCKET_NAME }}" > backend.hcl
-          echo "key = "terraform/state.tfstate"" >> backend.hcl
-          echo "bucket = ${{ secrets.STATE_BUCKET_NAME }}" >> backend.hcl

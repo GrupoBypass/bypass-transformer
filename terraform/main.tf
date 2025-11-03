@@ -2,6 +2,10 @@ provider "aws" {
   region = var.aws_region
 }
 
+terraform {
+  backend "local" {}
+}
+
 resource "aws_security_group" "ssh_sg" {
   name        = "ssh-access"
   description = "Allow SSH inbound traffic"

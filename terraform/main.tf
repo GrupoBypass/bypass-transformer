@@ -2,14 +2,6 @@ provider "aws" {
   region = var.aws_region
 }
 
-terraform {
-  backend "s3" {
-    bucket = "${var.state_bucket_name}"
-    key    = "terraform/state.tfstate"
-    region = "us-east-1"
-  }
-}
-
 resource "aws_security_group" "ssh_sg" {
   name        = "ssh-access"
   description = "Allow SSH inbound traffic"

@@ -9,6 +9,15 @@ provider "aws" {
   region = var.aws_region
 }
 
+data "terraform_remote_state" "bypass_transformer" {
+  backend = "s3"
+  config = {
+    bucket = var.bypass_state_bucket_name
+    key    = "terraform/bypass-transformer/state.tfstate"
+    region = "us-east-1"
+  }
+}
+
 data "archive_file" "lambda_zip" {
   type        = "zip"
   source_dir  = "${path.module}/lambda"
@@ -30,5 +39,11 @@ resource "aws_lambda_function" "lambda_function" {
   description = "Processes incoming data files"
   timeout     = 60
   memory_size = 128
+
+  environment {
+    variables = {
+      TRANSFORMER_EC2_PUBLIC_IP = data.terraform_remote_state.bypass_transformer.outputs.ec2_public_ip
+    }
+  }
 }
 

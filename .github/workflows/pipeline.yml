@@ -3,8 +3,13 @@ on:
   push:
     branches: [ "main" ]
 jobs:
-  deploy:
+  provisioning:
     runs-on: ubuntu-latest
+    outputs:
+      ec2_public_ip: ${{ steps.export.outputs.ec2_public_ip }}
+      raw_bucket_name: ${{ steps.s3.outputs.raw_bucket_name }}
+      trusted_bucket_name: ${{ steps.s3.outputs.trusted_bucket_name }}
+      client_bucket_name: ${{ steps.s3.outputs.client_bucket_name }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -38,24 +43,37 @@ jobs:
           terraform init -backend-config=backend.hcl
           terraform apply -auto-approve
 
-      - name: Obter IP da EC2 do Terraform
-        id: ec2
+      - name: Export IP da EC2 do Terraform
+        id: export
         run: |
           cd terraform
           echo "ip=$(terraform output -raw ec2_public_ip)" >> $GITHUB_OUTPUT
 
-      - name: Adicionar IP da EC2 ao inventory.ini
-        run: |
-          echo "[ec2]" > ansible/inventory.ini
-          echo "${{ steps.ec2.outputs.ip }} ansible_user=ec2-user ansible_ssh_private_key_file=bypass-key.pem" >> ansible/inventory.ini
-
-      - name: Obter nomes do S3 do Terraform
+      - name: Export nomes do S3 do Terraform
         id: s3
         run: |
           cd terraform
           echo "raw=$(terraform output -raw raw_bucket_name)" >> $GITHUB_OUTPUT
           echo "trusted=$(terraform output -raw trusted_bucket_name)" >> $GITHUB_OUTPUT
           echo "client=$(terraform output -raw client_bucket_name)" >> $GITHUB_OUTPUT
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        
+      - name: Configurar credenciais AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: us-east-1
+
+      - name: Adicionar IP da EC2 ao inventory.ini
+        run: |
+          echo "[ec2]" > ansible/inventory.ini
+          echo "${{ needs.provisioning.outputs.ec2_public_ip }} ansible_user=ec2-user ansible_ssh_private_key_file=bypass-key.pem" >> ansible/inventory.ini
 
       - name: Adicionar chave SSH
         run: |
@@ -68,9 +86,9 @@ jobs:
           echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" > .env
           echo "AWS_SECRET_ACCESS_KEY_ID=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> .env
           echo "AWS_SESSION_TOKEN=${{ secrets.AWS_SESSION_TOKEN }}" >> .env
-          echo "S3_RAW=${{ steps.s3.outputs.raw }}" >> .env
-          echo "S3_TRUSTED=${{ steps.s3.outputs.trusted }}" >> .env
-          echo "S3_CLIENT=${{ steps.s3.outputs.client }}" >> .env
+          echo "S3_RAW=${{ needs.provisioning.outputs.raw_bucket_name }}" >> .env
+          echo "S3_TRUSTED=${{ needs.provisioning.outputs.trusted_bucket_name }}" >> .env
+          echo "S3_CLIENT=${{ needs.provisioning.outputs.client_bucket_name }}" >> .env
           cat .env
 
       - name: Instalar dependencias

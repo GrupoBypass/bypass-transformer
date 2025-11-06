@@ -45,5 +45,7 @@ resource "aws_lambda_function" "lambda_function" {
       TRANSFORMER_EC2_PUBLIC_IP = data.terraform_remote_state.bypass_transformer.outputs.ec2_public_ip
     }
   }
+
+  source_code_hash = filebase64sha256(data.archive_file.lambda_zip.output_path)
 }
 

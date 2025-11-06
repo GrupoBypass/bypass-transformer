@@ -1,14 +1,11 @@
 import json
 import urllib3
 import os
-from dotenv import load_dotenv
 
 http = urllib3.PoolManager()
 
 def lambda_handler(event, context):
     try:
-        load_dotenv()
-
         TRANSFORMER_EC2_PUBLIC_IP = os.environ.get("TRANSFORMER_EC2_PUBLIC_IP")
         
         # --- Extrair o nome do arquivo e o bucket do evento S3 ---
@@ -24,7 +21,7 @@ def lambda_handler(event, context):
         sensor_route = get_route(file_key)
 
         # --- Fazer o POST para sua EC2 ---
-        url = TRANSFORMER_EC2_PUBLIC_IP + sensor_route
+        url = f"http://{TRANSFORMER_EC2_PUBLIC_IP}:5000/{sensor_route}"
         headers = {"Content-Type": "application/json"}
         
         response = http.request(
@@ -49,15 +46,15 @@ def lambda_handler(event, context):
 
 def get_route(key):    
     if "dht" in key:
-        return "/process-dht11"
+        return "process-dht11"
     elif "dps" in key:
-        return "/process-dps"
+        return "process-dps"
     elif "optical" in key:
-        return "/process-optical"
+        return "process-optical"
     elif "omron" in key:
-        return "/process-omron"
+        return "process-omron"
     elif "piezo" in key:
-        return "/process-piezo"
+        return "process-piezo"
     elif "tof" in key:
-        return "/process-tof"
+        return "process-tof"
     

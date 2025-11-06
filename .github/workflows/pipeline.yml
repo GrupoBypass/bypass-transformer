@@ -7,9 +7,9 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       ec2_public_ip: ${{ steps.export.outputs.ec2_public_ip }}
-      raw_bucket_name: ${{ steps.s3.outputs.raw_bucket_name }}
-      trusted_bucket_name: ${{ steps.s3.outputs.trusted_bucket_name }}
-      client_bucket_name: ${{ steps.s3.outputs.client_bucket_name }}
+      raw_bucket_name: ${{ steps.export.outputs.raw_bucket_name }}
+      trusted_bucket_name: ${{ steps.export.outputs.trusted_bucket_name }}
+      client_bucket_name: ${{ steps.export.outputs.client_bucket_name }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -48,11 +48,6 @@ jobs:
         run: |
           cd terraform/transformer
           echo "ec2_public_ip=$(terraform output -raw ec2_public_ip)" >> $GITHUB_OUTPUT
-
-      - name: Export nomes do S3 do Terraform
-        id: s3
-        run: |
-          cd terraform/transformer
           echo "raw=$(terraform output -raw raw_bucket_name)" >> $GITHUB_OUTPUT
           echo "trusted=$(terraform output -raw trusted_bucket_name)" >> $GITHUB_OUTPUT
           echo "client=$(terraform output -raw client_bucket_name)" >> $GITHUB_OUTPUT

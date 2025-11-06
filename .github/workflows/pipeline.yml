@@ -25,9 +25,11 @@ jobs:
       - name: Criar Backend Terraform
         run: |
           cd terraform
-          echo "bucket = "${{ secrets.STATE_BUCKET_NAME }}"" > backend.hcl
-          echo "key = "terraform/state.tfstate"" >> backend.hcl
-          echo "region = "us-east-1"" >> backend.hcl
+          cat > backend.hcl <<EOF
+          bucket = "${{ secrets.STATE_BUCKET_NAME }}"
+          key    = "terraform/bypass-transformer/state.tfstate"
+          region = "us-east-1"
+          EOF
           cat backend.hcl
 
       - name: Terraform Apply

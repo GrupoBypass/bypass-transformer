@@ -27,9 +27,9 @@ jobs:
         with:
           terraform_version: 1.9.8
     
-      - name: Criar Backend Terraform
+      - name: Criar Backend Terraform Transformer
         run: |
-          cd terraform
+          cd terraform/transformer
           cat > backend.hcl <<EOF
           bucket = "${{ secrets.STATE_BUCKET_NAME }}"
           key    = "terraform/bypass-transformer/state.tfstate"
@@ -39,7 +39,7 @@ jobs:
 
       - name: Terraform Apply
         run: |
-          cd terraform
+          cd terraform/transformer
           terraform init -backend-config=backend.hcl
           terraform apply -auto-approve
 

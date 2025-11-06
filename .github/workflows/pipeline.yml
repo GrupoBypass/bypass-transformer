@@ -132,43 +132,43 @@ jobs:
           export ANSIBLE_HOST_KEY_CHECKING=False
           ansible-playbook -i inventory.ini setup.yml
 
- deploy_lambda:
-    needs: setup
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+  deploy_lambda:
+     needs: setup
+     runs-on: ubuntu-latest
+     steps:
+       - name: Checkout code
+         uses: actions/checkout@v3
 
-      - name: Configurar AWS
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: us-east-1
+       - name: Configurar AWS
+         uses: aws-actions/configure-aws-credentials@v4
+         with:
+           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+           aws-region: us-east-1
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.9.8
+       - name: Setup Terraform
+         uses: hashicorp/setup-terraform@v3
+         with:
+           terraform_version: 1.9.8
 
-      - name: Criar Backend Lambda
-        run: |
-          cd terraform/lambda
-          cat > backend.hcl <<EOF
-          bucket = "${{ secrets.STATE_BUCKET_NAME }}"
-          key    = "terraform/bypass-lambda/state.tfstate"
-          region = "us-east-1"
-          EOF
-          cat backend.hcl
+       - name: Criar Backend Lambda
+         run: |
+           cd terraform/lambda
+           cat > backend.hcl <<EOF
+           bucket = "${{ secrets.STATE_BUCKET_NAME }}"
+           key    = "terraform/bypass-lambda/state.tfstate"
+           region = "us-east-1"
+           EOF
+           cat backend.hcl
 
-      - name: Copiar Codigo Para Pasta TF
-        run: |
-          mv lambda terraform/lambda
+       - name: Copiar Codigo Para Pasta TF
+         run: |
+           mv lambda terraform/lambda
 
-      - name: Terraform Apply Lambda
-        id: tf_lambda
-        run: |
-          cd terraform/lambda
-          terraform init -backend-config=backend.hcl
-          terraform apply -var="bypass_state_bucket_name=${{ secrets.STATE_BUCKET_NAME }}" -auto-approve 
+       - name: Terraform Apply Lambda
+         id: tf_lambda
+         run: |
+           cd terraform/lambda
+           terraform init -backend-config=backend.hcl
+           terraform apply -var="bypass_state_bucket_name=${{ secrets.STATE_BUCKET_NAME }}" -auto-approve 

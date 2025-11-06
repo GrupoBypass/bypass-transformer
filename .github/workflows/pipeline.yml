@@ -74,7 +74,7 @@ jobs:
 
       - name: Criar .env
         run: |
-          cd src
+          cd lambda
           echo "TRANSFORMER_EC2_PUBLIC_IP=${{ needs.provisioning.outputs.transformer_ec2_public_ip }}" > .env
 
   deploy_app:

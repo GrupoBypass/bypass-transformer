@@ -52,7 +52,7 @@ resource "aws_lambda_function" "lambda_function" {
 resource "aws_lambda_permission" "allow_s3" {
   statement_id  = "AllowS3Invoke"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.lambda_function.lambda_handler
+  function_name = aws_lambda_function.lambda_function.function_name
   principal     = "s3.amazonaws.com"
   source_arn    = data.terraform_remote_state.bypass_transformer.outputs.raw_bucket_arn
 }

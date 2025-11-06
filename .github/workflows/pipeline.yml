@@ -47,7 +47,7 @@ jobs:
         id: export
         run: |
           cd terraform/transformer
-          echo "ip=$(terraform output -raw ec2_public_ip)" >> $GITHUB_OUTPUT
+          echo "ec2_public_ip=$(terraform output -raw ec2_public_ip)" >> $GITHUB_OUTPUT
 
       - name: Export nomes do S3 do Terraform
         id: s3

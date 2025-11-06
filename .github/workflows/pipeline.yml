@@ -48,9 +48,9 @@ jobs:
         run: |
           cd terraform/transformer
           echo "ec2_public_ip=$(terraform output -raw ec2_public_ip)" >> $GITHUB_OUTPUT
-          echo "raw=$(terraform output -raw raw_bucket_name)" >> $GITHUB_OUTPUT
-          echo "trusted=$(terraform output -raw trusted_bucket_name)" >> $GITHUB_OUTPUT
-          echo "client=$(terraform output -raw client_bucket_name)" >> $GITHUB_OUTPUT
+          echo "raw_bucket_name=$(terraform output -raw raw_bucket_name)" >> $GITHUB_OUTPUT
+          echo "trusted_bucket_name=$(terraform output -raw trusted_bucket_name)" >> $GITHUB_OUTPUT
+          echo "client_bucket_name=$(terraform output -raw client_bucket_name)" >> $GITHUB_OUTPUT
 
   deploy_app:
     runs-on: ubuntu-latest

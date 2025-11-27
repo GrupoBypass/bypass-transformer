@@ -71,6 +71,15 @@ resource "aws_s3_bucket_versioning" "versioning-client" {
   }
 }
 
+resource "aws_s3_object" "client_files" {
+  for_each = fileset("${path.module}/data", "*")
+
+  bucket = aws_s3_bucket.client.bucket
+  key    = each.value
+  source = "${path.module}/data/${each.value}"
+  etag   = filemd5("${path.module}/data/${each.value}")
+}
+
 resource "aws_instance" "transformer" {
   ami                    = "ami-0341d95f75f311023"
   instance_type          = "t2.medium"
